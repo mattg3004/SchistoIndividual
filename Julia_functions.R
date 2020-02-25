@@ -435,20 +435,20 @@ function birth_of_human(ages , gender, predisposition,  human_larvae, eggs, vac_
                         death_rate, female_factor, male_factor, contact_rates_by_age, 
                         death_rate_per_time_step, worm_stages, predis_aggregation)
 
-#= load required package  #=
+# load required package  
     @eval Distributions
 
-#=  load the gamma distribution for the predispostion distribution  =#
+#  load the gamma distribution for the predispostion distribution 
     gamma_pre = Gamma(predis_aggregation, 1/predis_aggregation)
 
-#= cast worm_stages to integer  =#
+# cast worm_stages to integer 
     worm_stages = trunc(Int, worm_stages)
     
-#= fill female and male worms array  =#
+# fill female and male worms array
     f_worms = fill(0, worm_stages)
     m_worms = fill(0, worm_stages)
     
-#=  push into arrays   =#
+# push into arrays 
     push!(female_worms, f_worms)
     push!(male_worms, m_worms)
     push!(ages, 0)
@@ -464,14 +464,14 @@ function birth_of_human(ages , gender, predisposition,  human_larvae, eggs, vac_
     push!(death_rate, death_rate_per_time_step[1])
     push!(age_contact_rate, contact_rates_by_age[1])
     
-#=  adjust predisposition based on gender specific behaviour parameters  =#
+# adjust predisposition based on gender specific behaviour parameters 
     if gender[end] == 0
         predisposition[end] = predisp * female_factor
     else
         predisposition[end] = predisp * male_factor
     end
     
-#=  return arrays  =#
+#  return arrays
     return ages , gender, predisposition,  human_larvae, eggs, vac_status, treated, female_worms, male_worms,
      vaccinated, age_contact_rate, death_rate 
 end')
@@ -504,7 +504,7 @@ end')
 vac_decay <- julia_eval('
 function vac_decay(vac_status) 
 
-#=  reducing by one
+#=  reducing by one =#
     
     vac_status  = vac_status .- 1
     
@@ -547,7 +547,7 @@ function update_env(num_sims, ages, human_larvae, female_worms, male_worms, time
         female_worms, male_worms = worm_maturity(female_worms, male_worms, worm_stages, average_worm_lifespan, time_step)
         
 #=  reduce the vaccination status by the time step  =#     
-        vac_status = vac_status -. time_step
+        vac_status = vac_status .- time_step
         
 #=  hacth the human eggs into the environment  =#     
         env_larvae = larvae_production(eggs, env_larvae)
