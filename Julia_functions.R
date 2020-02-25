@@ -132,10 +132,10 @@ function create_population(N, max_age, initial_worms, contact_rates_by_age, deat
     age_contact_rate = []
     death_rate = []
 
-# initialize the Gamma distribution for predisposition selection
+#=  initialize the Gamma distribution for predisposition selection  =#
     gamma_pre = Gamma(0.48, 1/0.48)
 
-# initialize and fill the environmental variable
+#=  initialize and fill the environmental variable  =#
     env_larvae = []
 
     for i in 1 : initial_larvae_days
@@ -145,7 +145,7 @@ function create_population(N, max_age, initial_worms, contact_rates_by_age, deat
     
     for i in 1:N
 
-# begin pushing entries to the data variables we keep track of
+#=  begin pushing entries to the data variables we keep track of  =#
         push!(ages, rand()*max_age)
         push!(gender, rand([0,1]))
         push!(predisposition, rand(gamma_pre)[1])
@@ -155,7 +155,7 @@ function create_population(N, max_age, initial_worms, contact_rates_by_age, deat
         push!(treated,[])
         push!(vaccinated, [])
         
-# everyone is initiated with a random number of worms in the first stage
+#=  everyone is initiated with a random number of worms in the first stage  =#
         f_worms = fill(0, worm_stages)
         f_worms[1] = trunc(Int,rand()*initial_worms)
         m_worms = fill(0, worm_stages)
@@ -163,11 +163,11 @@ function create_population(N, max_age, initial_worms, contact_rates_by_age, deat
         push!(female_worms, f_worms)
         push!(male_worms, m_worms)
 
-# age dependent contact rate is found for the given age        
+#=  age dependent contact rate is found for the given age  =#
         age = (trunc(Int, ages[end]))
         push!(age_contact_rate, contact_rates_by_age[age+1])
         
-# death rate for the correct age is pushed into array
+#=  death rate for the correct age is pushed into array  =#
         if age == 0 
             push!(death_rate, death_rate_per_time_step[1])
         else
@@ -175,8 +175,8 @@ function create_population(N, max_age, initial_worms, contact_rates_by_age, deat
             push!(death_rate, death_rate_per_time_step[index] )
         end
         
-#= if the person is chosen to be a male of female, then adjust their predisposition based on the 
- male or female factor, adjusting for behavioural differences according to gender =#
+#=  if the person is chosen to be a male of female, then adjust their predisposition based on the 
+    male or female factor, adjusting for behavioural differences according to gender  =#
         if gender[end] == 0
             predisposition[end] = predisposition[end] * female_factor
         else
@@ -184,7 +184,7 @@ function create_population(N, max_age, initial_worms, contact_rates_by_age, deat
         end
     end
     
-#= return all data that we will use to track the spread of the disease =#
+#=  return all data that we will use to track the spread of the disease  =#
     return ages , gender, predisposition,  human_larvae, eggs, vac_status, 
             treated, female_worms, male_worms,
             vaccinated, age_contact_rate, death_rate, env_larvae
@@ -192,12 +192,13 @@ end')
 
 
 # humans uptake larvae based on their predisposition, age_dependent contact rate 
-# and the number of larvae in the environment
-# input d here is the whole humans Array
+# and the number of larvae in the environment. number of larvae taken up is chosen 
+# from a Poisson distribution
+
 
 larvae_uptake <- julia_eval('
 function larvae_uptake(human_larvae, env_larvae, infective_larvae, time_step, contact_rate, 
-                        predisposition, age_contact_rate, vac_status)
+                        predisposition, age_contact_rate, vac_status, vaccine_effectiveness)
 
 #= load required package =#
     @eval Distributions
@@ -215,46 +216,70 @@ then delete those larvae from the environmental larvae =#
         splice!(env_larvae, 1)
     end
 
-#= loop over the population=#
+#= loop over the population uptaking larvae=#
     for i in 1:k
-        j = x[i]
-    
-        mm  = predisposition[j] * contact_rate * age_contact_rate[j] *
-            infective_larvae
-        mm = mm * (1 - (vac_status[j] > 0) * 0.7);
-        uptake = rand(Poisson(mm))
 
-        push!(human_larvae[j], uptake)
-        infective_larvae = infective_larvae - uptake
+# set index to the correct value from the random permutation        
+        j = x[i]
+
+# if there are still infective larvae in the environment, we will uptake from choose from Poisson
+# distribution. otherwise, just uptake 0.
+            if infective_larvae > 0
+            
+# calculate the rate of the poisson distribution
+                pois_rate  = predisposition[j] * contact_rate * age_contact_rate[j] *
+                    infective_larvae
+
+# reduce the rate according to the effectiveness of the vaccine (if any is given)
+                pois_rate = pois_rate * (1 - (vac_status[j] > 0) * vaccine_effectiveness);
+
+# choose from the Poisson distribution
+                uptake = rand(Poisson(pois_rate))
+                
+            else 
+                uptake = 0
+            end
+
+# push the number of uptaken larvae into the human larvae array 
+            push!(human_larvae[j], uptake)
+
+# reduce the infective larvae by the number of larvae uptaken            
+            infective_larvae = infective_larvae - uptake
+        
     end
     
+# return the infective, human and environmental larvae arrays
     return infective_larvae, human_larvae, env_larvae
+    
 end
 ')
 
 
 
-# Adult worms age and die according to an Erlang distribution.
-# Parameters are hard coded, n = 4, p = 4 / (5.7 * 365)
+# Worms die have a specified mean life span, and hence a rate of deaths per day .
+# the number of deaths, or maturing from each stage is dependent
+# on the number of worm stages and rate of aging through stages and dying.
 # This p is multiplied by the time scale of the simulation, so if 2 days
 # pass between consecutive time points, twice as many worms age and die
 
     
 worm_maturity <- julia_eval('
-function worm_maturity(female_worms, male_worms, worm_stages, time_step)
+function worm_maturity(female_worms, male_worms, worm_stages, average_worm_lifespan, time_step)
 
+#= load required package =#
     @eval Distributions
-    
+
+# cast a value to an integer which may have changed to float in Julia
     worm_stages = trunc(Int, worm_stages)
+
+# loop over the worms
     for i in 1:size(female_worms)[1]
 
-# probability of aging out of category
-        p = 0.001922614 * time_step * worm_stages / 4
+# probability of aging out of category/ dying
+        p = time_step / ( worm_stages * 365 * average_worm_lifespan)
 
 # kill appropriate number of worms in the final stage
-
         n = female_worms[i][worm_stages]
-
         dis = Binomial(n, 1-p)
         female_worms[i][worm_stages] = rand(dis, 1)[1]
 
@@ -262,21 +287,27 @@ function worm_maturity(female_worms, male_worms, worm_stages, time_step)
         dis = Binomial(n, 1-p)
         male_worms[i][worm_stages] = rand(dis, 1)[1]
 
-# #=
-#     for aging worms, we do this in reverse order, which ensures the
-#     correct order of aging is respected
-# =#
+#=
+     for aging worms, we do this in reverse order, which ensures the
+     correct order of aging is respected
+=#
         
         for j in (worm_stages-1):-1:1
+#=   choose the number of male and female worms to age from one stage to the next   =#
             aging_females = rand(Binomial(female_worms[i][j], p), 1)[1]
             aging_males = rand(Binomial(male_worms[i][j], p), 1)[1]
+
+#=   add and subtract the number of worms from the appropriate categories   =#
             female_worms[i][j+1] = female_worms[i][j+1] + aging_females
             female_worms[i][j] = female_worms[i][j] - aging_females
             male_worms[i][j+1] = male_worms[i][j+1] + aging_males
             male_worms[i][j] = male_worms[i][j] - aging_males
         end
     end
+    
+#=  return the female and male worm arrays  =#
     return female_worms, male_worms
+    
 end')
 
 
@@ -284,7 +315,7 @@ end')
 # this is just the minimum of total female worms and the total male worms
 
 calculate_worm_pairs <- julia_eval('
-function calculate_num_worms(female_worms, male_worms)
+function calculate_worm_pairs(female_worms, male_worms)
     return min.(sum.(female_worms), sum.(male_worms))
 end
 ')
@@ -314,7 +345,9 @@ end
 
 
 egg_production <- julia_eval('
-function egg_production(eggs, max_fecundity, r, worm_pairs, total_female_worms, total_male_worms)
+function egg_production(eggs, max_fecundity, r, worm_pairs, 
+                        total_female_worms, total_male_worms,
+                        density_dependent_fecundity)
 
 # load required package
     @eval Distributions
@@ -327,7 +360,7 @@ function egg_production(eggs, max_fecundity, r, worm_pairs, total_female_worms, 
         
 # calculate the mean number of eggs we would expect
             mean_eggs = trunc(Int, max_fecundity * worm_pairs[i] * 
-                    exp(-0.0007 * (total_female_worms[i] + total_male_worms[i])))
+                    exp(- density_dependent_fecundity * (total_female_worms[i] + total_male_worms[i])))
 
 # calculate the number of successes
             NB_r = r * worm_pairs[i]
@@ -363,29 +396,34 @@ end')
 # function to kill humans at age dependent rate
 
 death_of_human <- julia_eval('
-    function death_of_human(ages , gender, predisposition,  human_larvae, eggs,
-    vac_status, treated, female_worms, male_worms,
-    vaccinated, age_contact_rate, death_rate)
-    
-        for i in size(ages)[1]:-1:1
-        r = rand()[1]
-        if r < death_rate[i]
-            splice!(ages, i)
-            splice!(gender, i)
-            splice!(predisposition, i)
-            splice!(human_larvae, i)
-            splice!(eggs, i)
-            splice!(vac_status, i)
-            splice!(treated, i)
-            splice!(female_worms, i)
-            splice!(male_worms, i)
-            splice!(vaccinated, i)
-            splice!(age_contact_rate, i)
-            splice!(death_rate, i)
-        end
+function death_of_human(ages, gender, predisposition,  human_larvae, eggs,
+                            vac_status, treated, female_worms, male_worms,
+                            vaccinated, age_contact_rate, death_rate)
+
+#= loop through the population, and based on the death rate, delete individuals from the population  =#
+    for i in size(ages)[1]:-1:1
+      r = rand()
+
+#= if random number is smaller than the death rate, then delete individual from all the arrays  =#
+      if r < death_rate[i]
+        splice!(ages, i)
+        splice!(gender, i)
+        splice!(predisposition, i)
+        splice!(human_larvae, i)
+        splice!(eggs, i)
+        splice!(vac_status, i)
+        splice!(treated, i)
+        splice!(female_worms, i)
+        splice!(male_worms, i)
+        splice!(vaccinated, i)
+        splice!(age_contact_rate, i)
+        splice!(death_rate, i)
+      end
     end
+
+#=  return the arrays  =#
     return ages , gender, predisposition,  human_larvae, eggs, vac_status, treated, female_worms, male_worms,
-    vaccinated, age_contact_rate, death_rate
+          vaccinated, age_contact_rate, death_rate
 end')
 
 
@@ -393,11 +431,14 @@ end')
 
 birth_of_human <- julia_eval('
 function birth_of_human(ages , gender, predisposition,  human_larvae, eggs, vac_status, 
-    treated, female_worms, male_worms,
-    vaccinated, age_contact_rate, death_rate, female_factor, male_factor, 
-    contact_rates_by_age , death_rate_per_time_step, worm_stages)
-    
-    gamma_pre = Gamma(0.48, 1/0.48)
+                        treated, female_worms, male_worms,vaccinated, age_contact_rate, 
+                        death_rate, female_factor, male_factor, contact_rates_by_age, 
+                        death_rate_per_time_step, worm_stages, predis_aggregation)
+
+#= load required package  #=
+    @eval Distributions
+
+    gamma_pre = Gamma(predis_aggregation, 1/predis_aggregation)
     worm_stages = trunc(Int, worm_stages)
     f_worms = fill(0, worm_stages)
     m_worms = fill(0, worm_stages)
@@ -434,7 +475,7 @@ function larvae_maturity(human_larvae, female_worms, male_worms, time_step)
         if length(human_larvae[i]) > 35/time_step
             females = rand(Binomial(human_larvae[i][1], 0.5))[1]
             female_worms[i][1] = female_worms[i][1] + females 
-            male_worms[i][1] = male_worms[i][1] + larvae[i][1] - females
+            male_worms[i][1] = male_worms[i][1] + human_larvae[i][1] - females
             splice!(human_larvae[i],1)
         end
     end
@@ -458,11 +499,11 @@ end')
 
 
 update_env <- julia_eval('
-function update_env(num_sims, ages, human_larvae, female_worms, male_worms, time_step,
-    eggs, max_fecundity, r,
-      worm_stages, vac_status, gender, predisposition,treated,
-      vaccinated, age_contact_rate, death_rate, env_larvae, infective_larvae,  contact_rate, 
-    female_factor, male_factor, contact_rates_by_age , death_rate_per_time_step, birth_rate)
+function update_env(num_sims, ages, human_larvae, female_worms, male_worms, time_step, average_worm_lifespan,
+                    eggs, max_fecundity, r, worm_stages, vac_status, gender, predis_aggregation,
+                    predisposition, treated, vaccine_effectiveness, density_dependent_fecundity,
+                    vaccinated, age_contact_rate, death_rate, env_larvae, infective_larvae,  contact_rate, 
+                    female_factor, male_factor, contact_rates_by_age , death_rate_per_time_step, birth_rate)
 
 
 
@@ -476,16 +517,18 @@ function update_env(num_sims, ages, human_larvae, female_worms, male_worms, time
         human_larvae, female_worms, male_worms =  
             larvae_maturity(human_larvae, female_worms, male_worms, time_step) 
         
-        worm_pairs = calculate_num_worms(female_worms, male_worms)
+        worm_pairs = calculate_worm_pairs(female_worms, male_worms)
 
         
         total_female_worms, total_male_worms = calculate_total_worms(female_worms, male_worms)
         
         
-        eggs = egg_production(eggs, max_fecundity, r, worm_pairs, total_female_worms, total_male_worms)
+        eggs = egg_production(eggs, max_fecundity, r, worm_pairs, 
+                              total_female_worms, total_male_worms,
+                              density_dependent_fecundity)
         
         
-        female_worms, male_worms = worm_maturity(female_worms, male_worms, worm_stages, time_step)
+        female_worms, male_worms = worm_maturity(female_worms, male_worms, worm_stages, average_worm_lifespan, time_step)
         
         
         vac_status = vac_decay(vac_status)
@@ -501,7 +544,7 @@ function update_env(num_sims, ages, human_larvae, female_worms, male_worms, time
         
         infective_larvae, human_larvae, env_larvae = 
                 larvae_uptake(human_larvae, env_larvae, infective_larvae, time_step, contact_rate, 
-                    predisposition, age_contact_rate, vac_status)
+                    predisposition, age_contact_rate, vac_status, vaccine_effectiveness)
                     
         l = rand(Binomial(size(ages)[1], birth_rate))[1]
         if l > 0
@@ -510,9 +553,9 @@ function update_env(num_sims, ages, human_larvae, female_worms, male_worms, time
                 treated, female_worms, male_worms,
                      vaccinated, age_contact_rate, death_rate ] =
                         birth_of_human(ages , gender, predisposition,  human_larvae, eggs, vac_status, 
-                            treated, female_worms, male_worms,
-                            vaccinated, age_contact_rate, death_rate, female_factor, male_factor, 
-                            contact_rates_by_age , death_rate_per_time_step, worm_stages)
+                                       treated, female_worms, male_worms,vaccinated, age_contact_rate, 
+                                       death_rate, female_factor, male_factor, contact_rates_by_age, 
+                                       death_rate_per_time_step, worm_stages, predis_aggregation)
             end
         end
     end
