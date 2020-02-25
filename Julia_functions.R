@@ -586,16 +586,6 @@ function update_env(num_sims, ages, human_larvae, female_worms, male_worms, time
      vaccinated, age_contact_rate, death_rate, env_larvae
 end')
 
-yy <- julia_eval('
-function yy(x)
-println(x)
-end
-')
-
-ll <- julia_eval('
-function ll(x)
-yy(x)
-end')
 
 
 
