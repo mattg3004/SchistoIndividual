@@ -47,19 +47,19 @@ julia_setup()
 # The first entry is for under 1's, and the rest are at 5 year intervals
 #  At some point this will be changed to be read from a file
 
-make_death_rate_array<-julia_eval("function make_death_rate_array(time_step)
+make_death_rate_array<-julia_eval("
+function make_death_rate_array(time_step)
     
 # make an array with the number of deaths per 100 people per year by age
-    
-    age_death_rate_per_1000 = [6.56, 0.93, 0.3, 0.23, 0.27, 0.38, 0.44, 0.48,
-     0.53, 0.65, 
-        0.88, 1.06, 1.44, 2.1, 3.33, 5.29, 8.51, 13.66, 21.83, 29.98, 36.98]
+    age_death_rate_per_1000 = [6.56, 0.93, 0.3, 0.23, 0.27, 0.38, 0.44, 0.48,0.53, 0.65, 
+                                0.88, 1.06, 1.44, 2.1, 3.33, 5.29, 8.51, 13.66, 21.83, 29.98, 36.98]
 
 # convert the death rate per 1000 to deaths per day
-    
     death_rate_per_time_step = time_step*age_death_rate_per_1000/(1000*365)
 
+# return death rate data
     return age_death_rate_per_1000, death_rate_per_time_step
+    
 end
 ")
 
@@ -78,7 +78,6 @@ function make_age_contact_rate_array(max_age)
 
 # convert the max_age to an integer. for some reason defining max_age as in R leads to this 
 # becoming a float in the Julia section, which then doesn't work in the fill function below
-
     max_age = trunc(Int, max_age+1)
 
 # initialize an array with the same value for contact rate across all ages
@@ -95,6 +94,8 @@ function make_age_contact_rate_array(max_age)
     for i in 11:16
         contact_rates_by_age[i] = 1
     end
+
+# return contact rates for age
     return contact_rates_by_age
 end
 ") 
@@ -108,9 +109,8 @@ end
 # adjusting for gender specific behaviour 
 
 create_population = julia_eval('
-function create_population(N, max_age, initial_worms, 
-    contact_rates_by_age, death_rate_per_time_step,
-    worm_stages, female_factor, male_factor, initial_larvae, initial_larvae_days)
+function create_population(N, max_age, initial_worms, contact_rates_by_age, death_rate_per_time_step,
+                            worm_stages, female_factor, male_factor, initial_larvae, initial_larvae_days)
   
 # load required packages
     @eval using Distributions
@@ -167,7 +167,7 @@ function create_population(N, max_age, initial_worms,
         age = (trunc(Int, ages[end]))
         push!(age_contact_rate, contact_rates_by_age[age+1])
         
-# death rate is pushed for the correct age
+# death rate for the correct age is pushed into array
         if age == 0 
             push!(death_rate, death_rate_per_time_step[1])
         else
@@ -175,8 +175,8 @@ function create_population(N, max_age, initial_worms,
             push!(death_rate, death_rate_per_time_step[index] )
         end
         
-# if the person is chosen to be a male of female, then adjust their predisposition based on the 
-# male or female factor
+#= if the person is chosen to be a male of female, then adjust their predisposition based on the 
+ male or female factor, adjusting for behavioural differences according to gender =#
         if gender[end] == 0
             predisposition[end] = predisposition[end] * female_factor
         else
@@ -184,9 +184,10 @@ function create_population(N, max_age, initial_worms,
         end
     end
     
-# return all data that we will use to track the spread of the disease
-    return ages , gender, predisposition,  human_larvae, eggs, vac_status, treated, female_worms, male_worms,
-    vaccinated, age_contact_rate, death_rate, env_larvae
+#= return all data that we will use to track the spread of the disease =#
+    return ages , gender, predisposition,  human_larvae, eggs, vac_status, 
+            treated, female_worms, male_worms,
+            vaccinated, age_contact_rate, death_rate, env_larvae
 end')
 
 
@@ -196,18 +197,25 @@ end')
 
 larvae_uptake <- julia_eval('
 function larvae_uptake(human_larvae, env_larvae, infective_larvae, time_step, contact_rate, 
-predisposition, age_contact_rate, vac_status)
+                        predisposition, age_contact_rate, vac_status)
 
+#= load required package =#
     @eval Distributions
+
+#= we want the human population to randomly pick up larvae.
+        therefore we want to shuffle the population. 
+        the following lines make a random permutation of indices for the population=#
     k = size(human_larvae)[1]
     x = randperm(k)
 
+#= assign larvae which have been in the environment for 40 days to become infective.
+then delete those larvae from the environmental larvae =#
     if  length(env_larvae) > 40 / time_step
         infective_larvae = infective_larvae + env_larvae[1]
         splice!(env_larvae, 1)
     end
 
-
+#= loop over the population=#
     for i in 1:k
         j = x[i]
     
@@ -240,10 +248,10 @@ function worm_maturity(female_worms, male_worms, worm_stages, time_step)
     worm_stages = trunc(Int, worm_stages)
     for i in 1:size(female_worms)[1]
 
-        # probability of aging out of category
+# probability of aging out of category
         p = 0.001922614 * time_step * worm_stages / 4
 
-        # kill appropriate number of worms in the final stage
+# kill appropriate number of worms in the final stage
 
         n = female_worms[i][worm_stages]
 
@@ -254,10 +262,10 @@ function worm_maturity(female_worms, male_worms, worm_stages, time_step)
         dis = Binomial(n, 1-p)
         male_worms[i][worm_stages] = rand(dis, 1)[1]
 
-        # #=
-        #     for aging worms, we do this in reverse order, which ensures the
-        #     correct order of aging is respected
-        # =#
+# #=
+#     for aging worms, we do this in reverse order, which ensures the
+#     correct order of aging is respected
+# =#
         
         for j in (worm_stages-1):-1:1
             aging_females = rand(Binomial(female_worms[i][j], p), 1)[1]
@@ -291,25 +299,53 @@ end
 
 
 # function to calculate the number of eggs produced
+# this is done by choosing from a negative binomial distribution for each worms,
+# where the mean and aggregation parameters are calculated as in the
+# "Refined stratified-worm-burden models that incorporate specific biological features
+# of human and snail hosts provide better estimates of Schistosoma diagnosis, transmission, and control" paper
+# for julia the negative binomial describes the number of failures before the given number of successes 
+# in a collection of independent Bernoulli trials.
+# we need to specify a probability of success, and a given number of successes, which are derived
+# from the mean and aggregation in the function below
+
+# inputs 
+
+# r - aggregation factor for NB distribution
+
 
 egg_production <- julia_eval('
 function egg_production(eggs, max_fecundity, r, worm_pairs, total_female_worms, total_male_worms)
-    
+
+# load required package
     @eval Distributions
+
+# loop over individuals
     for i in 1 : size(worm_pairs)[1] 
-        mean_eggs = trunc(Int, max_fecundity * worm_pairs[i] * 
+
+# if we have a positive number of worms, then make calculation, otherwise the number of eggs is trivially 0
+        if worm_pairs[i] > 0
+        
+# calculate the mean number of eggs we would expect
+            mean_eggs = trunc(Int, max_fecundity * worm_pairs[i] * 
                     exp(-0.0007 * (total_female_worms[i] + total_male_worms[i])))
-                
-        NB_r = r * worm_pairs[i]
-        p = NB_r/(NB_r+mean_eggs)
-        if NB_r > 0
+
+# calculate the number of successes
+            NB_r = r * worm_pairs[i]
+       
+# calculate the probability of a success
+            p = NB_r/(NB_r+mean_eggs)
+
+# choose from NB
             eggs_num = rand(NegativeBinomial(NB_r,p))[1]
         else 
             eggs_num = 0
         end
-        
+
+# put this selected number of eggs into the eggs array
         eggs[i] = eggs_num
         end
+
+# return the eggs array
     return eggs
 end')
 
