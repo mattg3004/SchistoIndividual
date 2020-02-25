@@ -48,17 +48,13 @@ julia_setup()
 #  At some point this will be changed to be read from a file
 
 make_death_rate_array<-julia_eval("
-function make_death_rate_array(time_step)
-    
-# make an array with the number of deaths per 100 people per year by age
-    age_death_rate_per_1000 = [6.56, 0.93, 0.3, 0.23, 0.27, 0.38, 0.44, 0.48,0.53, 0.65, 
-                                0.88, 1.06, 1.44, 2.1, 3.33, 5.29, 8.51, 13.66, 21.83, 29.98, 36.98]
+function make_death_rate_array(age_death_rate_per_1000, time_step)
 
 # convert the death rate per 1000 to deaths per day
     death_rate_per_time_step = time_step*age_death_rate_per_1000/(1000*365)
 
 # return death rate data
-    return age_death_rate_per_1000, death_rate_per_time_step
+    return death_rate_per_time_step
     
 end
 ")
@@ -152,8 +148,8 @@ function create_population(N, max_age, initial_worms, contact_rates_by_age, deat
         push!(human_larvae,[])
         push!(eggs,0)
         push!(vac_status, 0)
-        push!(treated,[])
-        push!(vaccinated, [])
+        push!(treated,0)
+        push!(vaccinated, 0)
         
 #=  everyone is initiated with a random number of worms in the first stage  =#
         f_worms = fill(0, worm_stages)
@@ -459,8 +455,8 @@ function birth_of_human(ages , gender, predisposition,  human_larvae, eggs, vac_
     push!(human_larvae,[])
     push!(eggs,0)
     push!(vac_status, 0)
-    push!(treated,[])
-    push!(vaccinated, [])
+    push!(treated, 0)
+    push!(vaccinated, 0)
     predisp = rand(gamma_pre)[1]
 
     push!(death_rate, death_rate_per_time_step[1])
@@ -590,8 +586,16 @@ function update_env(num_sims, ages, human_larvae, female_worms, male_worms, time
      vaccinated, age_contact_rate, death_rate, env_larvae
 end')
 
+yy <- julia_eval('
+function yy(x)
+println(x)
+end
+')
 
-
+ll <- julia_eval('
+function ll(x)
+yy(x)
+end')
 
 
 
