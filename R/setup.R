@@ -14,13 +14,13 @@
 #' }
 #'
 #' @export
-SchistoIndividual <- function (schist_path, ...){
+SchistoIndividual <- function (...){
   julia <- JuliaCall::julia_setup(...)
   JuliaCall::julia_install_package_if_needed("Distributions")
   JuliaCall::julia_install_package_if_needed("Random")
   JuliaCall::julia_install_package_if_needed("PoissonRandom")
   JuliaCall::julia_install_package_if_needed("JLD")
+  JuliaCall::julia_install_package_if_needed("Schistoxpkg")
+
   
-  include_schisto <- paste0('include("', schist_path, '")')
-  JuliaCall::julia_eval(include_schisto)
 }
