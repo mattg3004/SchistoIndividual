@@ -1,0 +1,20 @@
+Package: SchistoIndividual
+Type: Package
+Title: Individual based simulations of schistosomaisis.
+Version: 0.1.2
+Authors@R: c(
+    person("Matt", "Graham", email = "matthewgraham3004@gmail.com ", role = c("aut", "cre")),
+    person("Tim", "Lucas", email =  "timcdlucas@gmail.com", role = "aut", comment = c(ORCID = "0000-0003-4694-8107")),
+    person("Jaspreet", "Toor", email = "jaspreet.toor@bdi.ox.ac.uk ", role = "aut"),
+    person("Diepreye", "Ayabina", email = "diepreye.ayabina@bdi.ox.ac.uk ", role = "aut")
+    )
+Description: An R wrapper to the Julia package schistox.jl <https://github.com/mattg3004/Schistox> which provides individual based stochastic simulations of schistomsomiasis transmission.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.1
+Imports:
+Suggests:
+    testthat,
+    knitr,
+VignetteBuilder: knitr
