@@ -22,5 +22,9 @@ SchistoIndividual <- function (...){
   JuliaCall::julia_install_package_if_needed("JLD")
   JuliaCall::julia_install_package_if_needed("Schistoxpkg")
 
-  
+  JuliaCall::julia_library("Distributions")
+  JuliaCall::julia_library("Random")
+  JuliaCall::julia_library("PoissonRandom")
+  JuliaCall::julia_library("JLD")
+  JuliaCall::julia_library("Schistoxpkg")
 }
