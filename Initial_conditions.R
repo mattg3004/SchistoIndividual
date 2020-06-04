@@ -8,7 +8,6 @@ male_factor = 1
 initial_miracidia = 1
 initial_miracidia_days = round(41/time_step)
 env_cercariae = 0
-contact_rate = 0.00003
 ages_per_index = 5
 
 # parameter for proportion of people who are given mda who will take it
@@ -30,11 +29,11 @@ average_worm_lifespan = 5.7 # years
 
 # this is the aggregation parameter for the predisposition
 predis_aggregation = 0.24
-
+predis_weight = 1
 env_cercariae_death_rate = 0.09 * time_step 
   
-  # what proportion of miracidias and cercariae survive each round
-  env_miracidia_survival_prop = 1/3
+# what proportion of miracidias and cercariae survive each round
+env_miracidia_survival_prop = 1/3
 env_cercariae_survival_prop = 1/2
 mda_coverage = 0.8 # proportion of target age group reached by mda
 mda_round = 0
@@ -62,3 +61,35 @@ spec_ages = c(7639, 7082, 6524, 5674, 4725, 4147, 3928, 3362,
 age_death_rate_per_1000 = c(6.56, 0.93, 0.3, 0.23, 0.27, 0.38, 0.44, 0.48,0.53, 0.65,
                             0.88, 1.06, 1.44, 2.1, 3.33, 5.29, 8.51, 13.66,
                             21.83, 29.98, 36.98)
+
+death_prob_by_age = c(0.0656, 0.0093, 0.003, 0.0023, 0.0027, 0.0038, 0.0044, 0.0048, 0.0053,
+                     0.0065, 0.0088, 0.0106, 0.0144, 0.021, 0.0333, 0.0529, 0.0851, 0.1366, 0.2183, 0.2998 , 0.3698, 1)
+
+ages_for_deaths = c(1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60,
+                   65, 70, 75, 80, 85, 90, 95, 100, 110)
+
+
+filename = "julia_file222.jld"
+N = 1000
+N = as.integer(N)
+worm_stages = as.integer(worm_stages)
+scenario = "high adult"
+
+
+input_ages = array(0,dim=c(0))
+input_contact_rates = array(0,dim=c(0))
+max_age = 100
+max_age = as.integer(max_age)
+
+number_years_equ = 300
+
+num_time_steps_equ = as.integer(365*number_years_equ / time_step)
+contact_rate = 0.02
+human_cercariae_prop = 1
+env_cercariae_survival_prop = 1/3
+env_miracidia_survival_prop = 1/5
+
+
+col1 = rgb(110/255, 99/255, 252/255)
+col2 = rgb(30/255, 190/255, 160/255)
+col3 = rgb(2/255, 163/255, 217/255)
