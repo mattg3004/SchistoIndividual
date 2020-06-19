@@ -193,11 +193,12 @@ mda_info = add_to_mda(mda_info, mda_restart, number_years, drug_efficacy)
 list[times5, mean_prev5, mean_sac_prev5, mean_high_burden5, mean_high_burden_sac5, mean_adult_prev5] = 
   run_repeated_sims_no_population_change(num_repeats, num_time_steps,
                                          time_step, average_worm_lifespan,
+                                         community_contact_rate, community_probs,
                                          max_fecundity, r, worm_stages, predis_aggregation, predis_weight, vaccine_effectiveness,
                                          density_dependent_fecundity, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                                          female_factor, male_factor, contact_rates_by_age,
                                          death_prob_by_age, ages_for_deaths, birth_rate, mda_info, vaccine_info, mda_adherence, mda_access,
-                                         record_frequency, filename,human_cercariae_prop)
+                                         record_frequency, filename, human_cercariae_prop)
 
 
 
