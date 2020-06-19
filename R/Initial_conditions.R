@@ -1,15 +1,19 @@
 N = 1000
 max_age = 100
-initial_worms = 10
+initial_worms = 0
 time_step = 10
 worm_stages = as.integer(2)
 female_factor = 1
 male_factor = 1
-initial_miracidia = 1
+initial_miracidia = 5000
 initial_miracidia_days = round(41/time_step)
-env_cercariae = 0
+env_cercariae = 5000
+init_env_cercaraie = env_cercariae
 ages_per_index = 5
 
+N_communities = 1
+community_probs = 1
+community_contact_rate = 1
 # parameter for proportion of people who are given mda who will take it
 mda_adherence = .9
 mda_access = .9
@@ -18,7 +22,7 @@ mda_access = .9
 number_years = 250
 max_fecundity = 0.34  # From "The design of schistosomiasis monitoring and evaluation programmes:
 #The importance of collecting adu lt data to inform treatment strategies for Schistosoma mansoni"
-density_dependent_fecundity = 0.0005
+density_dependent_fecundity = 0.0007
 r = 0.03 # aggregation parameter for negative binomial for egg production
 num_time_steps = as.integer(365*number_years / time_step)
 
@@ -30,11 +34,8 @@ average_worm_lifespan = 5.7 # years
 # this is the aggregation parameter for the predisposition
 predis_aggregation = 0.24
 predis_weight = 1
-env_cercariae_death_rate = 0.09 * time_step 
+
   
-# what proportion of miracidias and cercariae survive each round
-env_miracidia_survival_prop = 1/3
-env_cercariae_survival_prop = 1/2
 mda_coverage = 0.8 # proportion of target age group reached by mda
 mda_round = 0
 
@@ -69,7 +70,7 @@ ages_for_deaths = c(1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60,
                    65, 70, 75, 80, 85, 90, 95, 100, 110)
 
 
-filename = "julia_file222.jld"
+filename = "population.jld"
 N = 1000
 N = as.integer(N)
 worm_stages = as.integer(worm_stages)
