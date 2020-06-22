@@ -11,9 +11,21 @@ env_cercariae = 5000
 init_env_cercaraie = env_cercariae
 ages_per_index = 5
 
-N_communities = 1
-community_probs = 1
-community_contact_rate = 1
+# if more than one ommunity, then specify how many here
+N_communities = 3
+# N_communities = 1
+
+# next parameter is the relative probabilities of being in each community
+# if entries are all equal, then all communities are equally likely and will
+# be roughly the same size
+community_probs = c(1,1,1)
+# community_probs = 1
+
+# community contact rates give the contact rate with the infectious
+# cercariae pool for each community
+community_contact_rate = c(1,0.5,0.25)
+# community_contact_rate = 1
+
 # parameter for proportion of people who are given mda who will take it
 mda_adherence = .9
 mda_access = .9
