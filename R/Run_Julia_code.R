@@ -11,15 +11,15 @@ contact_rates_by_age = make_age_contact_rate_array(max_age, scenario, input_ages
 
 
 N = as.integer(2000)
-num_runs = 1
-predis_aggregation = 0.24
+num_runs = 1 #matt-add description for this?
+predis_aggregation = 0.24 #for high prev settings 0.24, for low prev settings 0.04 [Toor et al JID paper]
 initial_miracidia = 50000*N/1000
 init_env_cercariae = 50000*N/1000
 num_years = 100
 contact_rate = 0.02
 
 
-number_years_equ = 200
+number_years_equ = 200 #for low prevalence settings, need to be careful and check if longer needed
 num_time_steps_equ = as.integer(365*number_years_equ / time_step)
 time_step = 10
 
@@ -85,9 +85,9 @@ list[ages_equ, death_ages_equ, gender_equ, predisposition_equ, community_equ,
 ################################################################################################################################################
 ################################################################################################################################################
 ###############
-num_repeats = 15
+num_repeats = 15 #number of simulations to run
 number_years = 20
-drug_efficacy = 0.86
+drug_efficacy = 0.863 #Toor et al. JID paper in SI: drug efficacy 86.3% for S. mansoni and 94% for S. haematobium
 num_time_steps = as.integer(365*number_years / time_step)
 
 mda_info = create_mda(0, .75, 0, 1,
@@ -159,6 +159,7 @@ list[times1, mean_prev1, mean_sac_prev1, mean_high_burden1, mean_high_burden_sac
 plot(times1, mean_sac_prev1, type = 'l', col = col1, bty = 'n',
      ylim = c(0, max(mean_sac_prev1)), lwd = 2, xlab = "year", ylab = "SAC prevalence")
 lines(times1, mean_high_burden_sac1, col = col2, lwd =2 )
+#lines(times1, mean_prev1, col = col2, lwd =2,lty=2) #to plot population prev
 abline(h = 1, lwd = 2, lty = 2, col = col3)
 abline(v=c(0,5,10,15,20), col = 'lightgrey')
 abline(h=c(0,10,20, 30,40,50,60,70,80,90), col = 'lightgrey')
