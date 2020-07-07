@@ -1,4 +1,4 @@
-N = 1000
+N = 1000    #population size
 max_age = 100
 initial_worms = 0
 time_step = 10
@@ -9,7 +9,7 @@ initial_miracidia = 5000
 initial_miracidia_days = round(41/time_step)
 env_cercariae = 5000
 init_env_cercaraie = env_cercariae
-ages_per_index = 5
+ages_per_index = 5   #add def for this please matt
 
 # if more than one ommunity, then specify how many here
 N_communities = 3
@@ -32,19 +32,25 @@ mda_access = .9
 
 # how long to run simulation for
 number_years = 250
-max_fecundity = 0.34  # From "The design of schistosomiasis monitoring and evaluation programmes:
-#The importance of collecting adu lt data to inform treatment strategies for Schistosoma mansoni"
-density_dependent_fecundity = 0.0007
+
+max_fecundity = 0.34  # for S. mansoni [Toor et al JID paper SI]
+#max_fecundity = 0.3  # for S. haematobium [Toor et al JID paper SI]
+
+density_dependent_fecundity = 0.0007 # for S. mansoni [Toor et al JID paper SI]
+#density_dependent_fecundity = 0.0006 # for S. haematobium [Toor et al JID paper SI]
+
 r = 0.03 # aggregation parameter for negative binomial for egg production
 num_time_steps = as.integer(365*number_years / time_step)
 
 # human birth rate
 birth_rate = 28*time_step/(1000*365)
 
-average_worm_lifespan = 5.7 # years
+average_worm_lifespan = 5.7 # years for S. mansoni [Toor et al JID paper SI]
+#average_worm_lifespan = 4 # years for S. haematobium [Toor et al JID paper SI]
 
 # this is the aggregation parameter for the predisposition
-predis_aggregation = 0.24
+predis_aggregation = 0.24 # 0.24 for high prev settings; 0.04 for low prev settings # From "The design of schistosomiasis monitoring and evaluation programmes:
+#The importance of collecting adult data to inform treatment strategies for Schistosoma mansoni"
 predis_weight = 1
 
   
@@ -62,7 +68,7 @@ vaccine_effectiveness = 0.95
 num_sims = 1
 
 # record the state of the population this often in years
-record_frequency = 1/24
+record_frequency = 1/24 # use 1/12 for monthly output
 
 #= this is the number of thousands of people in 5 year (0-4, 5-9,...) intervals in Kenya
 #and will be used to give a specified age structure when we run to equilibrium =#
@@ -94,7 +100,7 @@ input_contact_rates = array(0,dim=c(0))
 max_age = 100
 max_age = as.integer(max_age)
 
-number_years_equ = 300
+number_years_equ = 300 #for low prev settings, may need more years to check stable
 
 num_time_steps_equ = as.integer(365*number_years_equ / time_step)
 contact_rate = 0.02
