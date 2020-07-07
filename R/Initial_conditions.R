@@ -9,7 +9,17 @@ initial_miracidia = 5000
 initial_miracidia_days = round(41/time_step)
 env_cercariae = 5000
 init_env_cercaraie = env_cercariae
-ages_per_index = 5   #add def for this please matt
+
+
+
+
+#= this is the number of thousands of people in 5 year (0-4, 5-9,...) intervals in Kenya
+#and will be used to give a specified age structure when we run to equilibrium =#
+spec_ages = c(7639, 7082, 6524, 5674, 4725, 4147, 3928, 3362,
+              2636, 1970, 1468, 1166, 943, 718, 455, 244)
+
+# specify the number of ages in each bracket in the above specified ages (e.g. 7639 in the 0-4 age bracket and 7082 in the 5-9 age bracket)
+ages_per_index = 5   
 
 # if more than one ommunity, then specify how many here
 N_communities = 3
@@ -70,10 +80,6 @@ num_sims = 1
 # record the state of the population this often in years
 record_frequency = 1/24 # use 1/12 for monthly output
 
-#= this is the number of thousands of people in 5 year (0-4, 5-9,...) intervals in Kenya
-#and will be used to give a specified age structure when we run to equilibrium =#
-spec_ages = c(7639, 7082, 6524, 5674, 4725, 4147, 3928, 3362,
-              2636, 1970, 1468, 1166, 943, 718, 455, 244)
 
 #= number of deaths per 1000 individuals by age
 #first entry is for under 1's, then for 5 year intervals from then on =#
