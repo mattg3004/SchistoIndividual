@@ -29,7 +29,7 @@ calculate_likelihood <- function(simAges, maleWorms, femaleWorms, data){
   log.x = array(0, length(maleWorms)*length(data))
   count = 1
   # calculate worm pairs
-  wormPairs = calculate_worm_pairs(female_worms = maleWorms, male_worms = maleWorms)
+  wormPairs = calculate_worm_pairs(female_worms = femaleWorms, male_worms = maleWorms)
   
   for (i in unique(data$Age)){
     # get data for chosen age
@@ -53,7 +53,8 @@ calculate_likelihood <- function(simAges, maleWorms, femaleWorms, data){
         pairs = as.numeric(as.character(wp$wp[k]))
         num = as.numeric(as.character(wp$Freq[k]))
         l = dnbinom(e*100, mu = lambda*pairs*exp(-z*pairs), size = pairs * r, log = TRUE)
-        log.x[count] = (l*num / length(y))^as.numeric(as.character(eggs$Freq[k]))
+        log.x[count] = (l*num / length(y))^as.numeric(as.character(eggs$Freq[j]))
+        print(paste(log.x[count],", j = ",j,", k = ",k))
         count = count + 1
       }
     }
