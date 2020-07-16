@@ -184,7 +184,8 @@ update_env_to_equ <- function(num_time_steps, pop,
                               vaccine_effectiveness,
                               density_dependent_fecundity,
                               env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
-                              female_factor, male_factor, contact_rates_by_age, record_frequency, human_cercariae_prop,
+                              female_factor, male_factor, contact_rates_by_age, record_frequency,
+                              human_cercariae_prop,miracidia_maturity_time,
                               filename){
   
   JuliaCall::julia_assign("num_time_steps", num_time_steps)
@@ -223,6 +224,7 @@ update_env_to_equ <- function(num_time_steps, pop,
   JuliaCall::julia_assign("access", pop[[16]])
   JuliaCall::julia_assign("adherence", pop[[15]])
   JuliaCall::julia_assign("community_contact_rate", community_contact_rate)
+  JuliaCall::julia_assign("miracidia_maturity_time", miracidia_maturity_time)
   
   x = JuliaCall::julia_eval("update_env_to_equilibrium(num_time_steps, ages, human_cercariae, female_worms, male_worms,
   community, community_contact_rate,
@@ -232,7 +234,8 @@ update_env_to_equ <- function(num_time_steps, pop,
                                 predisposition, treated, vaccine_effectiveness,
                                 density_dependent_fecundity,vaccinated, env_miracidia,
                                 env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
-                                female_factor, male_factor, contact_rates_by_age, record_frequency, age_contact_rate, human_cercariae_prop)")
+                                female_factor, male_factor, contact_rates_by_age, record_frequency, age_contact_rate, 
+                            human_cercariae_prop, miracidia_maturity_time)")
   
 
   
@@ -302,7 +305,7 @@ create_mda <- function(pre_SAC_prop, SAC_prop, adult_prop, first_mda_time,
 
 
 
-update_env_keep_population_same <- function(num_time_steps, ages, death_ages,
+update_env_keep_population_same <- function(num_time_steps, ages, death_ages, community, community_contact_rate, community_probs,
                                             human_cercariae, female_worms, male_worms,
                                             time_step, average_worm_lifespan,
                                             eggs, max_fecundity, r, worm_stages,
@@ -318,6 +321,9 @@ update_env_keep_population_same <- function(num_time_steps, ages, death_ages,
   JuliaCall::julia_assign("num_time_steps", num_time_steps)
   JuliaCall::julia_assign("ages", ages)
   JuliaCall::julia_assign("death_ages", death_ages)
+  JuliaCall::julia_assign("community", community)
+  JuliaCall::julia_assign("community_contact_rate", community_contact_rate)
+  JuliaCall::julia_assign("community_probs", community_probs)
   JuliaCall::julia_assign("human_cercariae", human_cercariae)
   JuliaCall::julia_assign("female_worms", female_worms)
   JuliaCall::julia_assign("male_worms", male_worms)
@@ -359,24 +365,24 @@ update_env_keep_population_same <- function(num_time_steps, ages, death_ages,
   
   
   
-  list[ages, death_ages, gender, predisposition,  human_cercariae, eggs,
+  list[ages, death_ages, gender, predisposition, community, human_cercariae, eggs,
        vac_status, treated, female_worms, male_worms,
        vaccinated, age_contact_rate,
        env_miracidia, env_cercariae, adherence,access,
-       record] = JuliaCall::julia_eval("update_env_keep_population_same(num_time_steps, ages, death_ages,
-                                            human_cercariae, female_worms, male_worms,
-                                            time_step, average_worm_lifespan,
-                                            eggs, max_fecundity, r, worm_stages,
-                                            vac_status, gender, predis_aggregation,predis_weight,
-                                            predisposition, treated, vaccine_effectiveness,
-                                            density_dependent_fecundity, death_prob_by_age, ages_for_deaths,
-                                            vaccinated, age_contact_rate, env_miracidia,
-                                            env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
-                                            female_factor, male_factor, contact_rates_by_age,
-                                            birth_rate, mda_info, vaccine_info, adherence, mda_adherence, access, mda_access,
-                                            record_frequency, human_cercariae_prop)")
+       record] = JuliaCall::julia_eval("update_env_keep_population_same(num_time_steps, ages, death_ages,community, community_contact_rate, community_probs,
+    human_cercariae, female_worms, male_worms,
+    time_step, average_worm_lifespan,
+    eggs, max_fecundity, r, worm_stages,
+    vac_status, gender, predis_aggregation,predis_weight,
+    predisposition, treated, vaccine_effectiveness,
+    density_dependent_fecundity, death_prob_by_age, ages_for_deaths,
+    vaccinated, age_contact_rate, env_miracidia,
+    env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
+    female_factor, male_factor, contact_rates_by_age,
+    birth_rate, mda_info, vaccine_info, adherence, mda_adherence, access, mda_access,
+    record_frequency, human_cercariae_prop)")
   
-  return(list(ages, death_ages, gender, predisposition,  human_cercariae, eggs,
+  return(list(ages, death_ages, gender, predisposition, community, human_cercariae, eggs,
               vac_status, treated, female_worms, male_worms,
               vaccinated, age_contact_rate,
               env_miracidia, env_cercariae, adherence,access,
@@ -667,5 +673,240 @@ plot_data_from_julia <- function(x, filename, col1, col2, ytitle="", xtitle = ""
 }
 
 
+plot_data_from_julia_sac_adult_all <- function(x, filename, col1, col2, col3, ytitle="", xtitle = ""){
+  
+  
+  
+  record = x[[13]]
+  
+  
+  a = return_arrays_from_object(record)
+  
+  times = array(NA,length(a[[1]]))
+  prev = array(NA,length(a[[1]]))
+  sac_prev = array(NA,length(a[[1]]))
+  high_burden = array(NA,length(a[[1]]))
+  high_burden_sac = array(NA,length(a[[1]]))
+  adult_prev = array(NA,length(a[[1]]))
+  
+  for (i in 1 : length(a[[1]])){
+    times[i] = a[[1]][[i]]
+    prev[i] = a[[2]][[i]]
+    sac_prev[i] = a[[3]][[i]]
+    high_burden[i] = a[[4]][[i]]
+    high_burden_sac[i] = a[[5]][[i]]
+    adult_prev[i] = a[[6]][[i]]
+  }
+  
+  
+  plot(times, sac_prev,type = 'l', col = col1, ylim = c(0,100),bty = 'n', ylab = ytitle, xlab = xtitle)
+  lines(times, adult_prev, col = col2,type = 'l',ylim = c(0,100))
+  lines(times, prev, col = col3,type = 'l',ylim = c(0,100))
+  
+  legend('topright',legend=c("SAC prev", "adult prev", "prev"),
+         col=c(col1, col2, col3), lwd = c(2,2,2), lty = c(1,1,1), cex=1.2,
+         title="", text.font=18, bg='lightblue', bty = 'n')
+  
+  
+  abline(v=c(0,100,200,300,400,500,600,700,800,900,1000), col = 'lightgrey')
+  abline(h=c(0,20,40,60,80, 100), col = 'lightgrey')
+  
+  
+}
 
+
+
+
+
+plot_data_from_julia_multiple_records <- function(x1, x2, x3, x4, x5, x6, filename, col1, col2, ytitle="", xtitle = ""){
+  
+  
+  
+  record = x1[[13]]
+  
+  
+  a = return_arrays_from_object(record)
+  
+  times = array(NA,length(a[[1]]))
+  prev = array(NA,length(a[[1]]))
+  sac_prev = array(NA,length(a[[1]]))
+  high_burden = array(NA,length(a[[1]]))
+  high_burden_sac = array(NA,length(a[[1]]))
+  adult_prev = array(NA,length(a[[1]]))
+  
+  for (i in 1 : length(a[[1]])){
+    times[i] = a[[1]][[i]]
+    prev[i] = a[[2]][[i]]
+    sac_prev[i] = a[[3]][[i]]
+    high_burden[i] = a[[4]][[i]]
+    high_burden_sac[i] = a[[5]][[i]]
+    adult_prev[i] = a[[6]][[i]]
+  }
+  
+  
+  record = x2[[13]]
+  
+  
+  a = return_arrays_from_object(record)
+  
+  times2 = array(NA,length(a[[1]]))
+  prev2 = array(NA,length(a[[1]]))
+  sac_prev2 = array(NA,length(a[[1]]))
+  high_burden2 = array(NA,length(a[[1]]))
+  high_burden_sac2 = array(NA,length(a[[1]]))
+  adult_prev2 = array(NA,length(a[[1]]))
+  
+  for (i in 1 : length(a[[1]])){
+    times2[i] = a[[1]][[i]]
+    prev2[i] = a[[2]][[i]]
+    sac_prev2[i] = a[[3]][[i]]
+    high_burden2[i] = a[[4]][[i]]
+    high_burden_sac2[i] = a[[5]][[i]]
+    adult_prev2[i] = a[[6]][[i]]
+  }
+  
+  
+  record = x3[[13]]
+  
+  
+  a = return_arrays_from_object(record)
+  
+  times3 = array(NA,length(a[[1]]))
+  prev3 = array(NA,length(a[[1]]))
+  sac_prev3 = array(NA,length(a[[1]]))
+  high_burden3 = array(NA,length(a[[1]]))
+  high_burden_sac3 = array(NA,length(a[[1]]))
+  adult_prev3 = array(NA,length(a[[1]]))
+  
+  for (i in 1 : length(a[[1]])){
+    times3[i] = a[[1]][[i]]
+    prev3[i] = a[[2]][[i]]
+    sac_prev3[i] = a[[3]][[i]]
+    high_burden3[i] = a[[4]][[i]]
+    high_burden_sac3[i] = a[[5]][[i]]
+    adult_prev3[i] = a[[6]][[i]]
+  }
+  
+  
+  record = x4[[13]]
+  
+  
+  a = return_arrays_from_object(record)
+  
+  times4 = array(NA,length(a[[1]]))
+  prev4 = array(NA,length(a[[1]]))
+  sac_prev4 = array(NA,length(a[[1]]))
+  high_burden4 = array(NA,length(a[[1]]))
+  high_burden_sac4 = array(NA,length(a[[1]]))
+  adult_prev4 = array(NA,length(a[[1]]))
+  
+  for (i in 1 : length(a[[1]])){
+    times4[i] = a[[1]][[i]]
+    prev4[i] = a[[2]][[i]]
+    sac_prev4[i] = a[[3]][[i]]
+    high_burden4[i] = a[[4]][[i]]
+    high_burden_sac4[i] = a[[5]][[i]]
+    adult_prev4[i] = a[[6]][[i]]
+  }
+  
+  record = x5[[13]]
+  
+  
+  a = return_arrays_from_object(record)
+  
+  times5 = array(NA,length(a[[1]]))
+  prev5 = array(NA,length(a[[1]]))
+  sac_prev5 = array(NA,length(a[[1]]))
+  high_burden5 = array(NA,length(a[[1]]))
+  high_burden_sac5 = array(NA,length(a[[1]]))
+  adult_prev5 = array(NA,length(a[[1]]))
+  
+  for (i in 1 : length(a[[1]])){
+    times5[i] = a[[1]][[i]]
+    prev5[i] = a[[2]][[i]]
+    sac_prev5[i] = a[[3]][[i]]
+    high_burden5[i] = a[[4]][[i]]
+    high_burden_sac5[i] = a[[5]][[i]]
+    adult_prev5[i] = a[[6]][[i]]
+  }
+  
+  record = x6[[13]]
+  
+  
+  a = return_arrays_from_object(record)
+  
+  times6 = array(NA,length(a[[1]]))
+  prev6 = array(NA,length(a[[1]]))
+  sac_prev6 = array(NA,length(a[[1]]))
+  high_burden6 = array(NA,length(a[[1]]))
+  high_burden_sac6 = array(NA,length(a[[1]]))
+  adult_prev6 = array(NA,length(a[[1]]))
+  
+  for (i in 1 : length(a[[1]])){
+    times6[i] = a[[1]][[i]]
+    prev6[i] = a[[2]][[i]]
+    sac_prev6[i] = a[[3]][[i]]
+    high_burden6[i] = a[[4]][[i]]
+    high_burden_sac6[i] = a[[5]][[i]]
+    adult_prev6[i] = a[[6]][[i]]
+  }
+  
+  
+  plot(times, prev,type = 'l', col = 'grey', ylim = c(0,100),bty = 'n', ylab = ytitle, xlab = xtitle,lwd = 2)
+  lines(times, prev2,type = 'l', col = 'grey', ylim = c(0,100),bty = 'n', ylab = ytitle, xlab = xtitle,lwd = 2)
+  lines(times, prev3,type = 'l', col = 'grey', ylim = c(0,100),bty = 'n', ylab = ytitle, xlab = xtitle,lwd = 2)
+  lines(times, prev4,type = 'l', col = 'grey', ylim = c(0,100),bty = 'n', ylab = ytitle, xlab = xtitle,lwd = 2)
+  lines(times, prev5,type = 'l', col = 'grey', ylim = c(0,100),bty = 'n', ylab = ytitle, xlab = xtitle,lwd = 2)
+  lines(times, prev6,type = 'l', col = 'grey', ylim = c(0,100),bty = 'n', ylab = ytitle, xlab = xtitle,lwd = 2)
+  
+  
+  # legend('topright',legend=c("SAC prev", "SAC heavy burden"),
+  #        col=c(col1, col2, col3), lwd = c(2,2), lty = c(1,1), cex=1.2,
+  #        title="", text.font=18, bg='lightblue', bty = 'n')
+  
+  
+  abline(v=c(0,100,200,300,400,500,600,700,800,900,1000), col = 'lightgrey')
+  abline(h=c(0,20,40,60,80, 100), col = 'lightgrey')
+  
+  
+}
+
+
+
+
+
+calculate_worm_pairs <- function(female_worms, male_worms){
+  f_worms = array(0, length(female_worms))
+  m_worms = array(0, length(male_worms))
+  worm_pairs = array(0, length(male_worms))
+  for(i in 1 :length(f_worms)){
+    f_worms[i] = sum(female_worms[i])
+    m_worms[i] = sum(male_worms[i])
+    worm_pairs[i] = min(f_worms[i], m_worms[i])
+  }
+  return(worm_pairs)
+}
+
+
+
+
+
+worm_burden_proportions <- function(femaleWorms, maleWorms, bins){
+  wormPairs = calculateWormPairs(femaleWorms, maleWorms)
+  counts = data.frame(matrix(data = 0,ncol = 2, nrow = length(bins) + 1))
+  counts[, 1] = c(bins-1,paste(bins[length(bins)], "+"))
+  for(i in 1 : length(femaleWorms)){
+    worms = wormPairs[i]  
+    if(worms >= max(bins)){
+      counts[nrow(counts),2] = counts[nrow(counts),2] + 1
+    } else{
+      x = which(bins > worms)[1]
+      if(length(x) > 0){
+        counts[x,2] = counts[x,2] + 1
+      } 
+      
+    }
+  }
+  return(counts)
+}
 
