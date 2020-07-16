@@ -161,26 +161,32 @@ calculate_likelihood_grid_parameters <- function(predis_aggregation_grid,
 }
 
 
-
-list[log.x, likelihood]= calculate_likelihood(simAges = ages_equ, maleWorms = male_worms_equ, femaleWorms = female_worms_equ, 
-                                              lambda = max_fecundity, z = density_dependent_fecundity, data = data_2000)
-likelihood
-
- 
+# 
+# list[log.x, likelihood]= calculate_likelihood(simAges = ages_equ, maleWorms = male_worms_equ, femaleWorms = female_worms_equ, 
+#                                               lambda = max_fecundity, z = density_dependent_fecundity, data = data_2000)
+# likelihood
 
 
-# set.seed(1)
-# 
-# log.x = dnorm(runif(100),50,1,log=TRUE)
-# 
-# M = max(log.x)
-# 
-# outtrick = M + log(sum(exp(log.x - M)))
-# 
-# out = log(sum(exp(log.x)))
-# 
-# print(outtrick)
 
-# -1201.448
+
+
+contact_rates_by_age = make_age_contact_rate_array(max_age, scenario, input_ages, input_contact_rates)
+
+
+predis_aggregation_grid = seq(0.1, 0.26, 0.04)
+contact_rate_grid = seq(0.02,0.1, 0.004)
+max_fecundity_grid = seq(10,50,10)
+
 # 
-# print ( out )
+# predis_aggregation_grid = c(0.4)
+# contact_rate_grid = 0.06
+# max_fecundity_grid = 50
+num_rounds = 5
+
+
+
+
+likelihood_for_grid_parameters = calculate_likelihood_grid_parameters(predis_aggregation_grid,
+                                                                      contact_rate_grid,
+                                                                      max_fecundity_grid,
+                                                                      num_rounds)
