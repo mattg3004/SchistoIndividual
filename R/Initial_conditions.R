@@ -2,13 +2,9 @@ N = 1000    #population size
 max_age = 100
 initial_worms = 0
 time_step = 10
-worm_stages = as.integer(2)
+worm_stages = as.integer(1)
 female_factor = 1
 male_factor = 1
-initial_miracidia = 5000
-initial_miracidia_days = round(41/time_step)
-env_cercariae = 5000
-init_env_cercaraie = env_cercariae
 
 
 
@@ -23,22 +19,23 @@ ages_per_index = 5
 
 # if more than one ommunity, then specify how many here
 N_communities = 3
-# N_communities = 1
+N_communities = 1
 
 # next parameter is the relative probabilities of being in each community
 # if entries are all equal, then all communities are equally likely and will
 # be roughly the same size
 community_probs = c(1,1,1)
-# community_probs = 1
+community_probs = 1
 
 # community contact rates give the contact rate with the infectious
 # cercariae pool for each community
 community_contact_rate = c(1,0.5,0.25)
-# community_contact_rate = 1
+ community_contact_rate = 1
 
 # parameter for proportion of people who are given mda who will take it
 mda_adherence = .9
 mda_access = .9
+
 
 # how long to run simulation for
 number_years = 250
@@ -48,6 +45,17 @@ max_fecundity = 0.34  # for S. mansoni [Toor et al JID paper SI]
 
 density_dependent_fecundity = 0.0007 # for S. mansoni [Toor et al JID paper SI]
 #density_dependent_fecundity = 0.0006 # for S. haematobium [Toor et al JID paper SI]
+
+# number of days after which miracidia become cercariae
+miracidia_maturity_time = 24 # for S. mansoni 
+# miracidia_maturity_time = 21 # for S. haemotobium 
+
+
+initial_miracidia = 5000
+initial_miracidia_days = round(41/time_step)
+env_cercariae = 5000
+init_env_cercaraie = env_cercariae
+
 
 r = 0.03 # aggregation parameter for negative binomial for egg production
 num_time_steps = as.integer(365*number_years / time_step)
@@ -98,7 +106,7 @@ filename = "population.jld"
 N = 1000
 N = as.integer(N)
 worm_stages = as.integer(worm_stages)
-scenario = "high adult"
+scenario = "moderate adult"
 
 
 input_ages = array(0,dim=c(0))
