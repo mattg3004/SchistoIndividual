@@ -44,7 +44,7 @@ x = update_env_to_equ(num_time_steps_equ, pop,
                       density_dependent_fecundity,
                       env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                       female_factor, male_factor, contact_rates_by_age, record_frequency, human_cercariae_prop,
-                      filename)
+                      miracidia_maturity_time,filename)
 
 
 
