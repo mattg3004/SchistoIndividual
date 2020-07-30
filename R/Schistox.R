@@ -464,7 +464,7 @@ run_repeated_sims_no_population_change <- function(num_repeats, num_time_steps,
                                                    female_factor, male_factor, contact_rates_by_age,
                                                    death_prob_by_age, ages_for_deaths, birth_rate, mda_info, 
                                                    vaccine_info, mda_adherence, mda_access,
-                                                   record_frequency, filename,human_cercariae_prop){
+                                                   record_frequency, filename,human_cercariae_prop, miracidia_maturity_time){
   
   JuliaCall::julia_assign("num_repeats", num_repeats)
   JuliaCall::julia_assign("num_time_steps", num_time_steps)
@@ -495,6 +495,7 @@ run_repeated_sims_no_population_change <- function(num_repeats, num_time_steps,
   JuliaCall::julia_assign("human_cercariae_prop",  human_cercariae_prop)
   JuliaCall::julia_assign("community_contact_rate",  community_contact_rate)
   JuliaCall::julia_assign("community_probs",  community_probs)
+  JuliaCall::julia_assign("miracidia_maturity_time",  miracidia_maturity_time)
   
   outputs = JuliaCall::julia_eval("run_repeated_sims_no_population_change(num_repeats, num_time_steps,
                                        time_step, average_worm_lifespan,
@@ -503,7 +504,7 @@ run_repeated_sims_no_population_change <- function(num_repeats, num_time_steps,
                                        density_dependent_fecundity, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                                        female_factor, male_factor, contact_rates_by_age,
                                        death_prob_by_age, ages_for_deaths, birth_rate, mda_info, vaccine_info, mda_adherence, mda_access,
-                                       record_frequency, filename, human_cercariae_prop)")
+                                       record_frequency, filename, human_cercariae_prop, miracidia_maturity_time)")
   
 
   
@@ -535,6 +536,7 @@ run_repeated_sims_no_population_change <- function(num_repeats, num_time_steps,
   
   
 }
+
 
 
 
