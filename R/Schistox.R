@@ -2,7 +2,7 @@
 
 # Schistosomiasis model with an R interface running functions from Julia package Schistoxpkg
 
-
+#newline
 ####################################
 
 list <- structure(NA,class="result")
