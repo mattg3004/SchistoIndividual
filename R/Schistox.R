@@ -365,6 +365,8 @@ create_mda <- function(pre_SAC_prop, SAC_prop, adult_prop, first_mda_time,
 
 
 
+
+
 update_env_keep_population_same <- function(num_time_steps, ages, death_ages, community, community_contact_rate, community_probs,
                                             human_cercariae, female_worms, male_worms,
                                             time_step, average_worm_lifespan,
@@ -376,7 +378,7 @@ update_env_keep_population_same <- function(num_time_steps, ages, death_ages, co
                                             env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                                             female_factor, male_factor, contact_rates_by_age,
                                             birth_rate, mda_info, vaccine_info, adherence, mda_adherence, access, mda_access,
-                                            record_frequency, human_cercariae_prop){
+                                            record_frequency, human_cercariae_prop, miracidia_maturity_time){
   
   JuliaCall::julia_assign("num_time_steps", num_time_steps)
   JuliaCall::julia_assign("ages", ages)
@@ -422,7 +424,7 @@ update_env_keep_population_same <- function(num_time_steps, ages, death_ages, co
   JuliaCall::julia_assign("mda_access", mda_access)
   JuliaCall::julia_assign("record_frequency",  record_frequency)
   JuliaCall::julia_assign("human_cercariae_prop",  human_cercariae_prop)
-  
+  JuliaCall::julia_assign("miracidia_maturity_time",  miracidia_maturity_time)
   
   
   list[ages, death_ages, gender, predisposition, community, human_cercariae, eggs,
@@ -440,7 +442,7 @@ update_env_keep_population_same <- function(num_time_steps, ages, death_ages, co
     env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
     female_factor, male_factor, contact_rates_by_age,
     birth_rate, mda_info, vaccine_info, adherence, mda_adherence, access, mda_access,
-    record_frequency, human_cercariae_prop)")
+    record_frequency, human_cercariae_prop, miracidia_maturity_time)")
   
   return(list(ages, death_ages, gender, predisposition, community, human_cercariae, eggs,
               vac_status, treated, female_worms, male_worms,
@@ -449,6 +451,8 @@ update_env_keep_population_same <- function(num_time_steps, ages, death_ages, co
               record))
   
 }
+
+
 
 
 
