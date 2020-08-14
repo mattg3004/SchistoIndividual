@@ -2,7 +2,7 @@
 
 # Schistosomiasis model with an R interface running functions from Julia package Schistoxpkg
 
-#newline
+
 ####################################
 
 list <- structure(NA,class="result")
@@ -53,6 +53,32 @@ Schistox <- function (...){
 
 
 
+#' Title
+#'
+#' @param N 
+#' @param N_communities 
+#' @param community_probs 
+#' @param initial_worms 
+#' @param contact_rates_by_age 
+#' @param worm_stages 
+#' @param female_factor 
+#' @param male_factor 
+#' @param initial_miracidia 
+#' @param initial_miracidia_days 
+#' @param predis_aggregation 
+#' @param predis_weight 
+#' @param time_step 
+#' @param spec_ages 
+#' @param ages_per_index 
+#' @param death_prob_by_age 
+#' @param ages_for_deaths 
+#' @param mda_adherence 
+#' @param mda_access 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 create_population_specific_ages <- function(N, N_communities, community_probs, initial_worms, contact_rates_by_age,
                                             worm_stages, female_factor, male_factor,initial_miracidia,
                                             initial_miracidia_days, predis_aggregation, predis_weight, time_step,
@@ -106,7 +132,7 @@ create_population_specific_ages <- function(N, N_communities, community_probs, i
   access = result[[16]] 
   
   
-  num_steps = 10000
+  num_steps = 20000
   list[ages, death_ages] = generate_ages_and_deaths(num_steps, ages, death_ages, death_prob_by_age, ages_for_deaths)
   age_contact_rate = update_contact_rate(ages, age_contact_rate, contact_rates_by_age)
   gender = result[[3]]
@@ -123,6 +149,15 @@ create_population_specific_ages <- function(N, N_communities, community_probs, i
 }
 
 
+#' Title
+#'
+#' @param age_death_rate_per_1000 
+#' @param timestep 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 make_death_rate_array <- function(age_death_rate_per_1000, timestep){
   JuliaCall::julia_assign("age_death_rate_per_1000", age_death_rate_per_1000)
   JuliaCall::julia_assign("timestep", timestep)
@@ -133,6 +168,17 @@ make_death_rate_array <- function(age_death_rate_per_1000, timestep){
 
 
 
+#' Title
+#'
+#' @param max_age 
+#' @param scenario 
+#' @param input_ages 
+#' @param input_contact_rates 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 make_age_contact_rate_array <- function(max_age, scenario, input_ages, input_contact_rates){
   
   
@@ -146,6 +192,18 @@ make_age_contact_rate_array <- function(max_age, scenario, input_ages, input_con
   
 }
 
+#' Title
+#'
+#' @param num_steps 
+#' @param ages 
+#' @param death_ages 
+#' @param death_prob_by_age 
+#' @param ages_for_deaths 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 generate_ages_and_deaths <- function(num_steps, ages, death_ages, death_prob_by_age, ages_for_deaths){
   JuliaCall::julia_assign("num_steps", num_steps)
   JuliaCall::julia_assign("ages", ages)
@@ -162,6 +220,14 @@ generate_ages_and_deaths <- function(num_steps, ages, death_ages, death_prob_by_
 
 
 
+#' Title
+#'
+#' @param scenario 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 create_contact_settings <- function(scenario){
   JuliaCall::julia_assign("scenario", scenario)
   result <- JuliaCall::julia_eval("create_contact_settings(scenario)")
@@ -170,6 +236,154 @@ create_contact_settings <- function(scenario){
 
 
 
+
+
+
+
+update_env_keep_population_same<- function(num_time_steps, pop, community_contact_rate, community_probs,
+                                           time_step, average_worm_lifespan,
+                                           max_fecundity, r, worm_stages,
+                                           predis_aggregation,predis_weight,
+                                           vaccine_effectiveness,
+                                           density_dependent_fecundity, death_prob_by_age, ages_for_deaths,
+                                           env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
+                                           female_factor, male_factor, contact_rates_by_age,
+                                           birth_rate, mda_info, vaccine_info, mda_adherence, mda_access,
+                                           record_frequency, human_cercariae_prop, miracidia_maturity_time){
+  
+
+  JuliaCall::julia_assign("num_time_steps", num_time_steps)
+  JuliaCall::julia_assign("ages",pop[[1]])
+  JuliaCall::julia_assign("death_ages",pop[[2]])
+  JuliaCall::julia_assign("human_cercariae", pop[[6]])
+  JuliaCall::julia_assign("community", pop[[5]])
+  JuliaCall::julia_assign("community_probs", community_probs)
+  JuliaCall::julia_assign("female_worms", pop[[10]])
+  JuliaCall::julia_assign("male_worms", pop[[11]])
+  JuliaCall::julia_assign("time_step", time_step)
+  JuliaCall::julia_assign("average_worm_lifespan", average_worm_lifespan)
+  JuliaCall::julia_assign("eggs", pop[[7]])
+  JuliaCall::julia_assign("max_fecundity", max_fecundity)
+  JuliaCall::julia_assign("r", r)
+  JuliaCall::julia_assign("worm_stages", worm_stages)
+  JuliaCall::julia_assign("vac_status", pop[[8]])
+  JuliaCall::julia_assign("gender", pop[[3]])
+  JuliaCall::julia_assign("predis_aggregation", predis_aggregation)
+  JuliaCall::julia_assign("predisposition", pop[[4]])
+  JuliaCall::julia_assign("treated", pop[[9]])
+  JuliaCall::julia_assign("vaccine_effectiveness", vaccine_effectiveness)
+  JuliaCall::julia_assign("density_dependent_fecundity", density_dependent_fecundity)
+  JuliaCall::julia_assign("vaccinated", pop[[13]])
+  JuliaCall::julia_assign("env_miracidia", pop[[14]])
+  JuliaCall::julia_assign("env_cercariae", env_cercariae)
+  JuliaCall::julia_assign("contact_rate", contact_rate)
+  JuliaCall::julia_assign("env_cercariae_survival_prop", env_cercariae_survival_prop)
+  JuliaCall::julia_assign("env_miracidia_survival_prop", env_miracidia_survival_prop)
+  JuliaCall::julia_assign("female_factor", female_factor)
+  JuliaCall::julia_assign("male_factor", male_factor)
+  JuliaCall::julia_assign("contact_rates_by_age", contact_rates_by_age)
+  JuliaCall::julia_assign("record_frequency", record_frequency)
+  JuliaCall::julia_assign("age_contact_rate", pop[[12]])
+  JuliaCall::julia_assign("human_cercariae_prop", human_cercariae_prop)
+  JuliaCall::julia_assign("filename", filename)
+  JuliaCall::julia_assign("birth_rate", birth_rate)
+  JuliaCall::julia_assign("access", pop[[16]])
+  JuliaCall::julia_assign("adherence", pop[[15]])
+  JuliaCall::julia_assign("community_contact_rate", community_contact_rate)
+  JuliaCall::julia_assign("miracidia_maturity_time", miracidia_maturity_time)
+  JuliaCall::julia_assign("mda_adherence", mda_adherence)
+  JuliaCall::julia_assign("mda_access", mda_access)
+  JuliaCall::julia_assign("mda_info", mda_info)
+  JuliaCall::julia_assign("vaccine_info", vaccine_info)
+  JuliaCall::julia_assign("ages_for_deaths", ages_for_deaths)
+  JuliaCall::julia_assign("death_prob_by_age", death_prob_by_age)
+  
+  x = JuliaCall::julia_eval("update_env_keep_population_same(num_time_steps, ages, death_ages,community, community_contact_rate, community_probs,
+                                           human_cercariae, female_worms, male_worms,
+                                           time_step, average_worm_lifespan,
+                                           eggs, max_fecundity, r, worm_stages,
+                                           vac_status, gender, predis_aggregation,predis_weight,
+                                           predisposition, treated, vaccine_effectiveness,
+                                           density_dependent_fecundity, death_prob_by_age, ages_for_deaths,
+                                           vaccinated, age_contact_rate, env_miracidia,
+                                           env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
+                                           female_factor, male_factor, contact_rates_by_age,
+                                           birth_rate, mda_info, vaccine_info, adherence, mda_adherence, access, mda_access,
+                                           record_frequency, human_cercariae_prop, miracidia_maturity_time)")
+  
+  
+  ages = x[[1]]
+  death_ages = x[[2]]
+  gender = x[[3]]
+  predisposition = x[[4]]
+  community = x[[5]]
+  human_cercariae = x[[6]]
+  eggs = x[[7]]
+  vac_status = x[[8]]
+  treated = x[[9]]
+  female_worms = x[[10]]
+  male_worms = x[[11]]
+  vaccinated = x[[12]]
+  age_contact_rate = x[[13]]
+  env_miracidia = x[[14]]
+  env_cercariae = x[[15]]
+  adherence = x[[16]]
+  access = x[[17]]
+  record = x[[18]]
+
+
+  save_population_to_file(filename, ages, gender, predisposition,community, human_cercariae,
+                          eggs, vac_status, treated,
+                          female_worms, male_worms, vaccinated, age_contact_rate,
+                          death_ages, env_miracidia, env_cercariae, adherence, access)
+
+  
+  return(x)
+}
+
+                               
+
+
+
+
+
+
+
+
+
+
+
+
+
+#' Title
+#'
+#' @param num_time_steps 
+#' @param pop 
+#' @param time_step 
+#' @param average_worm_lifespan 
+#' @param community_contact_rate 
+#' @param max_fecundity 
+#' @param r 
+#' @param worm_stages 
+#' @param predis_aggregation 
+#' @param vaccine_effectiveness 
+#' @param density_dependent_fecundity 
+#' @param env_cercariae 
+#' @param contact_rate 
+#' @param env_cercariae_survival_prop 
+#' @param env_miracidia_survival_prop 
+#' @param female_factor 
+#' @param male_factor 
+#' @param contact_rates_by_age 
+#' @param record_frequency 
+#' @param human_cercariae_prop 
+#' @param miracidia_maturity_time 
+#' @param filename 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 update_env_to_equ <- function(num_time_steps, pop,
                               time_step, average_worm_lifespan,
                               community_contact_rate,
@@ -179,7 +393,7 @@ update_env_to_equ <- function(num_time_steps, pop,
                               density_dependent_fecundity,
                               env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                               female_factor, male_factor, contact_rates_by_age, record_frequency,
-                              human_cercariae_prop,miracidia_maturity_time,
+                              human_cercariae_prop,miracidia_maturity_time, heavy_burden_threshold,
                               filename){
   
   JuliaCall::julia_assign("num_time_steps", num_time_steps)
@@ -219,6 +433,7 @@ update_env_to_equ <- function(num_time_steps, pop,
   JuliaCall::julia_assign("adherence", pop[[15]])
   JuliaCall::julia_assign("community_contact_rate", community_contact_rate)
   JuliaCall::julia_assign("miracidia_maturity_time", miracidia_maturity_time)
+  JuliaCall::julia_assign("heavy_burden_threshold", heavy_burden_threshold)
   
   x = JuliaCall::julia_eval("update_env_to_equilibrium(num_time_steps, ages, human_cercariae, female_worms, male_worms,
   community, community_contact_rate,
@@ -229,7 +444,7 @@ update_env_to_equ <- function(num_time_steps, pop,
                                 density_dependent_fecundity,vaccinated, env_miracidia,
                                 env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                                 female_factor, male_factor, contact_rates_by_age, record_frequency, age_contact_rate, 
-                            human_cercariae_prop, miracidia_maturity_time)")
+                            human_cercariae_prop, miracidia_maturity_time, heavy_burden_threshold)")
   
 
   
@@ -264,6 +479,35 @@ update_env_to_equ <- function(num_time_steps, pop,
 
 
 
+#' Title
+#'
+#' @param num_time_steps 
+#' @param pop 
+#' @param time_step 
+#' @param average_worm_lifespan 
+#' @param community_contact_rate 
+#' @param max_fecundity 
+#' @param r 
+#' @param worm_stages 
+#' @param predis_aggregation 
+#' @param vaccine_effectiveness 
+#' @param density_dependent_fecundity 
+#' @param env_cercariae 
+#' @param contact_rate 
+#' @param env_cercariae_survival_prop 
+#' @param env_miracidia_survival_prop 
+#' @param female_factor 
+#' @param male_factor 
+#' @param contact_rates_by_age 
+#' @param record_frequency 
+#' @param human_cercariae_prop 
+#' @param miracidia_maturity_time 
+#' @param filename 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 update_env_to_equ_no_save <- function(num_time_steps, pop,
                               time_step, average_worm_lifespan,
                               community_contact_rate,
@@ -273,7 +517,7 @@ update_env_to_equ_no_save <- function(num_time_steps, pop,
                               density_dependent_fecundity,
                               env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                               female_factor, male_factor, contact_rates_by_age, record_frequency,
-                              human_cercariae_prop,miracidia_maturity_time,
+                              human_cercariae_prop,miracidia_maturity_time, heavy_burden_threshold,
                               filename){
   
   JuliaCall::julia_assign("num_time_steps", num_time_steps)
@@ -313,6 +557,7 @@ update_env_to_equ_no_save <- function(num_time_steps, pop,
   JuliaCall::julia_assign("adherence", pop[[15]])
   JuliaCall::julia_assign("community_contact_rate", community_contact_rate)
   JuliaCall::julia_assign("miracidia_maturity_time", miracidia_maturity_time)
+  JuliaCall::julia_assign("heavy_burden_threshold", heavy_burden_threshold)
   
   x = JuliaCall::julia_eval("update_env_to_equilibrium(num_time_steps, ages, human_cercariae, female_worms, male_worms,
   community, community_contact_rate,
@@ -323,12 +568,22 @@ update_env_to_equ_no_save <- function(num_time_steps, pop,
                                 density_dependent_fecundity,vaccinated, env_miracidia,
                                 env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                                 female_factor, male_factor, contact_rates_by_age, record_frequency, age_contact_rate, 
-                            human_cercariae_prop, miracidia_maturity_time)")
+                            human_cercariae_prop, miracidia_maturity_time, heavy_burden_threshold)")
   
   return(x)
 }
 
 
+#' Title
+#'
+#' @param ages 
+#' @param age_contact_rate 
+#' @param contact_rates_by_age 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 update_contact_rate <- function(ages, age_contact_rate, contact_rates_by_age){
   
   JuliaCall::julia_assign("ages", ages)
@@ -340,6 +595,23 @@ update_contact_rate <- function(ages, age_contact_rate, contact_rates_by_age){
 }
 
 
+#' Title
+#'
+#' @param pre_SAC_prop 
+#' @param SAC_prop 
+#' @param adult_prop 
+#' @param first_mda_time 
+#' @param last_mda_time 
+#' @param regularity 
+#' @param pre_SAC_gender 
+#' @param SAC_gender 
+#' @param adult_gender 
+#' @param mda_effectiveness 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 create_mda <- function(pre_SAC_prop, SAC_prop, adult_prop, first_mda_time,
                        last_mda_time, regularity, pre_SAC_gender, SAC_gender, adult_gender, mda_effectiveness){
   
@@ -366,98 +638,43 @@ create_mda <- function(pre_SAC_prop, SAC_prop, adult_prop, first_mda_time,
 
 
 
-
-update_env_keep_population_same <- function(num_time_steps, ages, death_ages, community, community_contact_rate, community_probs,
-                                            human_cercariae, female_worms, male_worms,
-                                            time_step, average_worm_lifespan,
-                                            eggs, max_fecundity, r, worm_stages,
-                                            vac_status, gender, predis_aggregation,predis_weight,
-                                            predisposition, treated, vaccine_effectiveness,
-                                            density_dependent_fecundity, death_prob_by_age, ages_for_deaths,
-                                            vaccinated, age_contact_rate, env_miracidia,
-                                            env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
-                                            female_factor, male_factor, contact_rates_by_age,
-                                            birth_rate, mda_info, vaccine_info, adherence, mda_adherence, access, mda_access,
-                                            record_frequency, human_cercariae_prop, miracidia_maturity_time){
-  
-  JuliaCall::julia_assign("num_time_steps", num_time_steps)
-  JuliaCall::julia_assign("ages", ages)
-  JuliaCall::julia_assign("death_ages", death_ages)
-  JuliaCall::julia_assign("community", community)
-  JuliaCall::julia_assign("community_contact_rate", community_contact_rate)
-  JuliaCall::julia_assign("community_probs", community_probs)
-  JuliaCall::julia_assign("human_cercariae", human_cercariae)
-  JuliaCall::julia_assign("female_worms", female_worms)
-  JuliaCall::julia_assign("male_worms", male_worms)
-  JuliaCall::julia_assign("time_step", time_step)
-  JuliaCall::julia_assign("average_worm_lifespan", average_worm_lifespan)
-  JuliaCall::julia_assign("eggs", eggs)
-  JuliaCall::julia_assign("max_fecundity",  max_fecundity)
-  JuliaCall::julia_assign("r", r)
-  JuliaCall::julia_assign("worm_stages", worm_stages)
-  JuliaCall::julia_assign("vac_status", vac_status)
-  JuliaCall::julia_assign("gender", gender)
-  JuliaCall::julia_assign("predis_aggregation", predis_aggregation)
-  JuliaCall::julia_assign("predis_weight", predis_weight)
-  JuliaCall::julia_assign("predisposition", predisposition)
-  JuliaCall::julia_assign("treated", treated)
-  JuliaCall::julia_assign("vaccine_effectiveness", vaccine_effectiveness)
-  JuliaCall::julia_assign("density_dependent_fecundity",  density_dependent_fecundity)
-  JuliaCall::julia_assign("death_prob_by_age", death_prob_by_age)
-  JuliaCall::julia_assign("ages_for_deaths", ages_for_deaths)
-  JuliaCall::julia_assign("vaccinated", vaccinated)
-  JuliaCall::julia_assign("age_contact_rate", age_contact_rate)
-  JuliaCall::julia_assign("env_miracidia", env_miracidia)
-  JuliaCall::julia_assign("env_cercariae", env_cercariae)
-  JuliaCall::julia_assign("contact_rate", contact_rate)
-  JuliaCall::julia_assign("env_cercariae_survival_prop", env_cercariae_survival_prop)
-  JuliaCall::julia_assign("env_miracidia_survival_prop", env_miracidia_survival_prop)
-  JuliaCall::julia_assign("female_factor",  female_factor)
-  JuliaCall::julia_assign("male_factor", male_factor)
-  JuliaCall::julia_assign("contact_rates_by_age", contact_rates_by_age)
-  JuliaCall::julia_assign("birth_rate", birth_rate)
-  JuliaCall::julia_assign("mda_info", mda_info)
-  JuliaCall::julia_assign("vaccine_info", vaccine_info)
-  JuliaCall::julia_assign("adherence", adherence)
-  JuliaCall::julia_assign("mda_adherence", mda_adherence)
-  JuliaCall::julia_assign("access", access)
-  JuliaCall::julia_assign("mda_access", mda_access)
-  JuliaCall::julia_assign("record_frequency",  record_frequency)
-  JuliaCall::julia_assign("human_cercariae_prop",  human_cercariae_prop)
-  JuliaCall::julia_assign("miracidia_maturity_time",  miracidia_maturity_time)
-  
-  
-  list[ages, death_ages, gender, predisposition, community, human_cercariae, eggs,
-       vac_status, treated, female_worms, male_worms,
-       vaccinated, age_contact_rate,
-       env_miracidia, env_cercariae, adherence,access,
-       record] = JuliaCall::julia_eval("update_env_keep_population_same(num_time_steps, ages, death_ages,community, community_contact_rate, community_probs,
-    human_cercariae, female_worms, male_worms,
-    time_step, average_worm_lifespan,
-    eggs, max_fecundity, r, worm_stages,
-    vac_status, gender, predis_aggregation,predis_weight,
-    predisposition, treated, vaccine_effectiveness,
-    density_dependent_fecundity, death_prob_by_age, ages_for_deaths,
-    vaccinated, age_contact_rate, env_miracidia,
-    env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
-    female_factor, male_factor, contact_rates_by_age,
-    birth_rate, mda_info, vaccine_info, adherence, mda_adherence, access, mda_access,
-    record_frequency, human_cercariae_prop, miracidia_maturity_time)")
-  
-  return(list(ages, death_ages, gender, predisposition, community, human_cercariae, eggs,
-              vac_status, treated, female_worms, male_worms,
-              vaccinated, age_contact_rate,
-              env_miracidia, env_cercariae, adherence,access,
-              record))
-  
-}
-
-
-
-
-
-
-
+#' Title
+#'
+#' @param num_repeats 
+#' @param num_time_steps 
+#' @param time_step 
+#' @param average_worm_lifespan 
+#' @param community_contact_rate 
+#' @param community_probs 
+#' @param max_fecundity 
+#' @param r 
+#' @param worm_stages 
+#' @param predis_aggregation 
+#' @param predis_weight 
+#' @param vaccine_effectiveness 
+#' @param density_dependent_fecundity 
+#' @param contact_rate 
+#' @param env_cercariae_survival_prop 
+#' @param env_miracidia_survival_prop 
+#' @param female_factor 
+#' @param male_factor 
+#' @param contact_rates_by_age 
+#' @param death_prob_by_age 
+#' @param ages_for_deaths 
+#' @param birth_rate 
+#' @param mda_info 
+#' @param vaccine_info 
+#' @param mda_adherence 
+#' @param mda_access 
+#' @param record_frequency 
+#' @param filename 
+#' @param human_cercariae_prop 
+#' @param miracidia_maturity_time 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 run_repeated_sims_no_population_change <- function(num_repeats, num_time_steps,
                                                    time_step, average_worm_lifespan,
                                                    community_contact_rate, community_probs,
@@ -468,7 +685,8 @@ run_repeated_sims_no_population_change <- function(num_repeats, num_time_steps,
                                                    female_factor, male_factor, contact_rates_by_age,
                                                    death_prob_by_age, ages_for_deaths, birth_rate, mda_info, 
                                                    vaccine_info, mda_adherence, mda_access,
-                                                   record_frequency, filename,human_cercariae_prop, miracidia_maturity_time){
+                                                   record_frequency, filename,human_cercariae_prop, miracidia_maturity_time,
+                                                   heavy_burden_threshold){
   
   JuliaCall::julia_assign("num_repeats", num_repeats)
   JuliaCall::julia_assign("num_time_steps", num_time_steps)
@@ -500,6 +718,7 @@ run_repeated_sims_no_population_change <- function(num_repeats, num_time_steps,
   JuliaCall::julia_assign("community_contact_rate",  community_contact_rate)
   JuliaCall::julia_assign("community_probs",  community_probs)
   JuliaCall::julia_assign("miracidia_maturity_time",  miracidia_maturity_time)
+  JuliaCall::julia_assign("heavy_burden_threshold", heavy_burden_threshold)
   
   outputs = JuliaCall::julia_eval("run_repeated_sims_no_population_change(num_repeats, num_time_steps,
                                        time_step, average_worm_lifespan,
@@ -508,7 +727,8 @@ run_repeated_sims_no_population_change <- function(num_repeats, num_time_steps,
                                        density_dependent_fecundity, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                                        female_factor, male_factor, contact_rates_by_age,
                                        death_prob_by_age, ages_for_deaths, birth_rate, mda_info, vaccine_info, mda_adherence, mda_access,
-                                       record_frequency, filename, human_cercariae_prop, miracidia_maturity_time)")
+                                       record_frequency, filename, human_cercariae_prop, miracidia_maturity_time,
+                                  heavy_burden_threshold)")
   
 
   
@@ -545,7 +765,21 @@ run_repeated_sims_no_population_change <- function(num_repeats, num_time_steps,
 
 
 
-
+#' Title
+#'
+#' @param mda_info 
+#' @param mda_start_time 
+#' @param last_mda_time 
+#' @param regularity 
+#' @param drug_efficacy 
+#' @param pre_SAC_prop 
+#' @param SAC_prop 
+#' @param adult_prop 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 add_to_mda <- function(mda_info, mda_start_time, last_mda_time,  regularity,
                        drug_efficacy, pre_SAC_prop, SAC_prop, adult_prop){
   
@@ -588,6 +822,31 @@ end
 ")
 
 
+#' Title
+#'
+#' @param filename 
+#' @param ages 
+#' @param gender 
+#' @param predisposition 
+#' @param community 
+#' @param human_cercariae 
+#' @param eggs 
+#' @param vac_status 
+#' @param treated 
+#' @param female_worms 
+#' @param male_worms 
+#' @param vaccinated 
+#' @param age_contact_rate 
+#' @param death_ages 
+#' @param env_miracidia 
+#' @param env_cercariae 
+#' @param adherence 
+#' @param access 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 save_population_to_file <- function(filename, ages, gender, predisposition,community, human_cercariae, 
                                     eggs, vac_status, treated, 
                                     female_worms, male_worms, vaccinated, age_contact_rate, 
@@ -621,6 +880,14 @@ save_population_to_file <- function(filename, ages, gender, predisposition,commu
 }
 
 
+#' Title
+#'
+#' @param filename 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 load_saved_population <-function(filename){
   d = JuliaCall::julia_eval('d = load(filename)')
   ages_equ = d$ages
@@ -648,6 +915,34 @@ load_saved_population <-function(filename){
 }
 
 
+
+
+
+#' Title
+#'
+#' @param filename 
+#' @param ages 
+#' @param gender 
+#' @param predisposition 
+#' @param community 
+#' @param human_cercariae 
+#' @param eggs 
+#' @param vac_status 
+#' @param treated 
+#' @param female_worms 
+#' @param male_worms 
+#' @param vaccinated 
+#' @param age_contact_rate 
+#' @param death_ages 
+#' @param env_miracidia 
+#' @param env_cercariae 
+#' @param adherence 
+#' @param access 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 save_file_in_julia <- function(filename, ages, gender, predisposition, community, human_cercariae, 
                                eggs, vac_status, treated,
                                female_worms, male_worms, vaccinated, age_contact_rate, 
@@ -681,6 +976,15 @@ save_file_in_julia <- function(filename, ages, gender, predisposition, community
 }
 
 
+#' Title
+#'
+#' @param filename 
+#' @param N 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 load_population_from_file <- function(filename, N){
   
   JuliaCall::julia_assign("filename", filename)
@@ -703,11 +1007,24 @@ load_population_from_file <- function(filename, N){
 
 
 
-plot_data_from_julia <- function(x, filename, col1, col2, ytitle="", xtitle = ""){
+#' Title
+#'
+#' @param x 
+#' @param filename 
+#' @param col1 
+#' @param col2 
+#' @param ytitle 
+#' @param xtitle 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+plot_data_from_julia <- function(record, filename, col1, col2, ytitle="", xtitle = ""){
   
   
   
-  record = x[[13]]
+  # record = x[[13]]
   
   
   a = return_arrays_from_object(record)
@@ -744,11 +1061,25 @@ plot_data_from_julia <- function(x, filename, col1, col2, ytitle="", xtitle = ""
 }
 
 
-plot_data_from_julia_sac_adult_all <- function(x, filename, col1, col2, col3, ytitle="", xtitle = ""){
+#' Title
+#'
+#' @param x 
+#' @param filename 
+#' @param col1 
+#' @param col2 
+#' @param col3 
+#' @param ytitle 
+#' @param xtitle 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+plot_data_from_julia_sac_adult_all <- function(record, filename, col1, col2, col3, ytitle="", xtitle = ""){
   
   
   
-  record = x[[13]]
+  # record = x[[13]]
   
   
   a = return_arrays_from_object(record)
@@ -789,6 +1120,24 @@ plot_data_from_julia_sac_adult_all <- function(x, filename, col1, col2, col3, yt
 
 
 
+#' Title
+#'
+#' @param x1 
+#' @param x2 
+#' @param x3 
+#' @param x4 
+#' @param x5 
+#' @param x6 
+#' @param filename 
+#' @param col1 
+#' @param col2 
+#' @param ytitle 
+#' @param xtitle 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 plot_data_from_julia_multiple_records <- function(x1, x2, x3, x4, x5, x6, filename, col1, col2, ytitle="", xtitle = ""){
   
   
@@ -946,6 +1295,15 @@ plot_data_from_julia_multiple_records <- function(x1, x2, x3, x4, x5, x6, filena
 
 
 
+#' Title
+#'
+#' @param female_worms 
+#' @param male_worms 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 calculate_worm_pairs <- function(female_worms, male_worms){
   f_worms = array(0, length(female_worms))
   m_worms = array(0, length(male_worms))
@@ -962,6 +1320,16 @@ calculate_worm_pairs <- function(female_worms, male_worms){
 
 
 
+#' Title
+#'
+#' @param femaleWorms 
+#' @param maleWorms 
+#' @param bins 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 worm_burden_proportions <- function(femaleWorms, maleWorms, bins){
   wormPairs = calculateWormPairs(femaleWorms, maleWorms)
   counts = data.frame(matrix(data = 0,ncol = 2, nrow = length(bins) + 1))
@@ -987,6 +1355,15 @@ worm_burden_proportions <- function(femaleWorms, maleWorms, bins){
 
 
 # function to calculate the number of worm pairs
+#' Title
+#'
+#' @param female_worms 
+#' @param male_worms 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 calculate_worm_pairs <- function(female_worms, male_worms){
   f_worms = array(0, length(female_worms))
   m_worms = array(0, length(male_worms))
@@ -1001,6 +1378,19 @@ calculate_worm_pairs <- function(female_worms, male_worms){
 
 
 
+#' Title
+#'
+#' @param simAges 
+#' @param maleWorms 
+#' @param femaleWorms 
+#' @param lambda 
+#' @param z 
+#' @param data 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 calculate_likelihood <- function(simAges, maleWorms, femaleWorms, 
                                  lambda, z, data){
   
@@ -1013,32 +1403,34 @@ calculate_likelihood <- function(simAges, maleWorms, femaleWorms,
     # get data for chosen age
     x = data[which(data$Age == i), ]
     # make table of number of eggs from the data for given age
-    eggs = as.data.frame(table(round(x$Mean_Schisto)))
+    eggs = as.data.frame(table(ceiling(x$Mean_Schisto)))
+    eggs$Freq = as.numeric(as.character(eggs$Freq))
+    eggs$Var1 = as.numeric(as.character(eggs$Var1))
     # choose correct individuals from simulated data
+    # take ceiling, since minimum age in the data is 1
     y = which(ceiling(simAges)==i)
     i1 = i
-    # get the worm pairs for these people
+    # if there are no people with the same age as from the data, take people who are 1 year younger
     while(length(y) == 0){
       i1 = i1-1
       y = which(ceiling(simAges)==i1)
     }
+    num_people = length(y)
+    # get worm pairs from these individuals from the simulation
     wp = wormPairs[y]
+    # make a table of the number of worms for these simuated people
     wp = as.data.frame(table(wp))
-    # iterate over eggs
+    wp$wp = as.numeric(as.character(wp$wp))
+    wp$Freq = as.numeric(as.character(wp$Freq))
+    # iterate over eggs, calculating the probability of producing that number of eggs given number of worms in simulated population.
     for(j in 1:nrow(eggs)){
-      e = as.numeric(as.character(eggs$Var1))[j]
+      e = eggs$Var1[j]
       for(k in 1 : nrow(wp)){
-        pairs = as.numeric(as.character(wp$wp[k]))
-        if (pairs == 0 & e > 0){
-        } else {
-          num = as.numeric(as.character(wp$Freq[k]))
-          l = dnbinom(e*100, mu = lambda*pairs*exp(-z*pairs), size = pairs * r, log = TRUE)
-          # log.x[count] = (l*num / length(y))^as.numeric(as.character(eggs$Freq[j]))
-          for(q in 1 : as.numeric(as.character(eggs$Freq[j]))){
-            log.x[count] = (l*num / length(y))
-            count = count + 1
-          }
-        }
+        pairs = wp$wp[k]
+        num = wp$Freq[k]
+        log.x[count] = log(dnbinom(e, mu = lambda*pairs*exp(-z*pairs)/100, size = max(0.000001,pairs * r)) * eggs$Freq[j]* num / num_people)
+        #log.x[count] = log(dnbinom(e, mu = lambda*pairs*exp(-z*pairs)/100, size = max(0.000001,pairs * r)) * eggs$Freq[j]) * num / num_people
+        count = count + 1
       }
     }
   }
@@ -1050,8 +1442,21 @@ calculate_likelihood <- function(simAges, maleWorms, femaleWorms,
 
 
 
-
-
+#' Title
+#'
+#' @param predis_aggregation_grid 
+#' @param contact_rate_grid 
+#' @param max_fecundity_grid 
+#' @param c1 
+#' @param c2 
+#' @param num_rounds 
+#' @param num_years 
+#' @param file_name 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 calculate_likelihood_grid_parameters <- function(predis_aggregation_grid,
                                                  contact_rate_grid,
                                                  max_fecundity_grid,
@@ -1158,6 +1563,16 @@ calculate_likelihood_grid_parameters <- function(predis_aggregation_grid,
 
 
 
+#' Title
+#'
+#' @param num_rounds 
+#' @param num_years 
+#' @param file_name 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 mcmc_params <- function(num_rounds,
                         num_years,
                         file_name){
@@ -1324,3 +1739,347 @@ mcmc_params <- function(num_rounds,
   }
   return(values)
 }
+
+
+
+#' Title
+#'
+#' @param data - data which we want to calculate the prevalence for
+#' @param age_groups - the age group split we are calculating prevalences. specifiy the maximum ages for each group,
+#' e.g. if our age groups are 0-4, 5-9, 10-15, 16+, age_groups = c(4,9,15,100)
+#'
+#' @return array which is has number of row equal to the length of age_groups variable and 2 columns, one
+#' specifying the age groups and the 2nd the prevalence
+#' @export
+#'
+#' @examples
+prevalence_for_each_age_group <- function(data, age_groups){
+  prev_age_group = data.frame(matrix(data = 0, nrow = length(age_groups), ncol = 2))
+  for (i in 1:length(age_groups)){
+    if(i == 1){
+      x = which(data$Age <= age_groups[i])
+    }else{
+      x = which((data$Age <= age_groups[i]) & (data$Age > age_groups[i-1]))
+    }
+    y = data[x, ]
+    prev_age_group[i, ] = c(age_groups[i], length(which(y$Mean_Schisto > 0))/length(x))
+  }
+  return(prev_age_group)
+}
+
+
+
+
+
+#' Title
+#'
+#' @param data - data which we want to calculate the egg bins prevalance for
+#' @param age_groups - the age group split we are calculating prevalences. specifiy the maximum ages for each group,
+#' e.g. if our age groups are 0-4, 5-9, 10-15, 16+, age_groups = c(4,9,15,100)
+#' @param bins - the bins for the number of eggs. We will take the number of eggs to be lower than the bins values.
+#'  this should always start with 0, so that we are storing the number 
+#' of individuals who have 0 eggs.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+egg_bins_for_age_group <- function(data, age_groups, bins){
+  # prepare matrix 
+  prev_age_group = data.frame(matrix(data = 0, nrow = length(age_groups), ncol = (length(bins) + 2)))
+  prev_age_group[, 1] = age_groups
+  for (i in 1:length(age_groups)){
+    if(i == 1){
+      x = which(data$Age <= age_groups[i])
+    }else{
+      x = which((data$Age <= age_groups[i]) & (data$Age > age_groups[i-1]))
+    }
+    y = data[x, ]
+    for(j in 1: length(bins)){
+      if(j == 1){
+        k = which(y$Mean_Schisto <= bins[j])
+      }else{
+        k = which((y$Mean_Schisto <= bins[j]) & (y$Mean_Schisto > bins[j-1]))
+      }
+      prev_age_group[i, j+1] = max(0.001,length(k))/length(x)
+    }
+    k = which(y$Mean_Schisto > bins[j] )
+    prev_age_group[i, j+2] = max(0.001,length(k))/length(x)
+  }
+  return(prev_age_group)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+#' Title
+#'
+#' @param num_rounds 
+#' @param num_years 
+#' @param file_name 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+mcmc_with_distance_likelihood <- function(num_rounds,
+                        num_years,
+                        n_sims_per_param_set,
+                        bins, age_groups,
+                        file_name){
+  
+  source("Initial_conditions.R")
+  require("readxl")
+  data_2000 = read_excel("data_gurarie_milalani.xlsx", sheet = "Age and egg count Milalani 2000")
+  data_2000$Age = data_2000$AGE
+  data_2000 = data_2000[,-2]
+  dataBins = egg_bins_for_age_group(data_2000, age_groups,bins)
+  N = as.integer(1000)
+  # predis_aggregation = 0.25 #for high prev settings 0.24, for low prev settings 0.04 [Toor et al JID paper]
+  initial_miracidia = 100000*N/1000
+  init_env_cercariae = 100000*N/1000
+  max_fecundity = 10
+  predis_aggregation = 0.23 #for high prev settings 0.24, for low prev settings 0.04 [Toor et al JID paper]
+  contact_rate = 0.02044
+  c1 = 0.005
+  c2 = 0.3
+  c3 = 2
+  c4 = 0.02
+  count = 1
+  num_time_steps_equ = as.integer(365*num_years / time_step)
+  input_ages = array(data = c(as.integer(4),as.integer(9),as.integer(15), as.integer(max_age)))
+  input_rates = array(data = c(c1,c2,c3,c4))
+  input_rates = input_rates/max(input_rates)
+  c1 = input_rates[1]; c2 = input_rates[2]; c3 = input_rates[3]; c4 = input_rates[4]
+  
+  
+  contact_rates_by_age = make_age_contact_rate_array(max_age, scenario, input_ages, input_rates)
+  
+  likelihood = doSimsForDistanceCalc(n_sims_per_param_set, dataBins, age_groups, bins,
+                                              N, N_communities, community_probs, initial_worms, contact_rates_by_age,
+                                              worm_stages, female_factor, male_factor,initial_miracidia,
+                                              initial_miracidia_days, predis_aggregation, predis_weight, time_step,
+                                              spec_ages, ages_per_index, death_prob_by_age, ages_for_deaths,
+                                              mda_adherence, mda_access,
+                                              num_time_steps_equ, 
+                                              average_worm_lifespan,
+                                              community_contact_rate,
+                                              max_fecundity, r,
+                                              vaccine_effectiveness,
+                                              density_dependent_fecundity,
+                                              env_cercariae,contact_rate,
+                                              env_cercariae_survival_prop, env_miracidia_survival_prop,
+                                              record_frequency, human_cercariae_prop,
+                                              miracidia_maturity_time, filename)
+  
+  # list[log.x, likelihood]= calculate_likelihood(simAges = ages_equ, maleWorms = male_worms_equ, femaleWorms = female_worms_equ, 
+  #                                               lambda = max_fecundity, z = density_dependent_fecundity, data = data_2000)
+  
+  values = data.frame(matrix(data = 0, 
+                             nrow = num_rounds,
+                             ncol = 8))
+  colnames(values) = c("aggregation", "contactRate", "maxFecundity","c1","c2", "c3","c4", "likelihood")
+  sd_decrease = 1
+  start_time = Sys.time()
+  for(l in 1:num_rounds){
+    # choose a random number, which will decide which parameter we are updating
+    par = sample(1:7,1)
+    old_likelihood = likelihood
+    # update the parameter and store the previous value and the previous likelihood in new variables
+    if(par == 1){
+      ##### update predis_aggregation
+      old_predis = predis_aggregation
+      predis_aggregation = max(rnorm(1, mean = predis_aggregation, sd = 0.1/sd_decrease), 0.001)
+    }else if(par == 2){
+      old_contact_rate = contact_rate
+      contact_rate = max(0.0001, rnorm(1, mean = contact_rate, sd = 0.01/sd_decrease))
+    }else if(par == 3){
+      old_max_fecundity = max_fecundity
+      max_fecundity = max(0.1, rnorm(n = 1, mean = max_fecundity, sd = 0.8/sd_decrease))
+    }else if(par == 4){
+      # if we are updating the age dependent contact rates, then we have to update the contact array too
+      old_c1 = c1
+      c1 = max(0.0001, rnorm(n = 1, mean = c1, sd = 0.1/sd_decrease))
+      input_rates = array(data = c(c1,c2,c3,c4))
+      input_rates = input_rates/max(input_rates)
+      c1 = input_rates[1]; c2 = input_rates[2]; c3 = input_rates[3]; c4 = input_rates[4]
+      contact_rates_by_age = make_age_contact_rate_array(max_age, scenario, input_ages, input_rates)
+    }else if(par == 5){
+      old_likelihood = likelihood
+      old_c2 = c2
+      c2 = max(0.0001, rnorm(n = 1, mean = c2, sd = 0.1/sd_decrease))
+      input_rates = array(data = c(c1,c2,c3,c4))
+      input_rates = input_rates/max(input_rates)
+      c1 = input_rates[1]; c2 = input_rates[2]; c3 = input_rates[3]; c4 = input_rates[4]
+      contact_rates_by_age = make_age_contact_rate_array(max_age, scenario, input_ages, input_rates)
+    }else if(par == 6){
+      old_c3 = c3
+      c3 = max(0.0001, rnorm(n = 1, mean = c3, sd = 0.1/sd_decrease))
+      input_rates = array(data = c(c1,c2,c3,c4))
+      input_rates = input_rates/max(input_rates)
+      c1 = input_rates[1]; c2 = input_rates[2]; c3 = input_rates[3]; c4 = input_rates[4]
+      contact_rates_by_age = make_age_contact_rate_array(max_age, scenario, input_ages, input_rates)
+    }else if(par == 7){
+      
+      old_c4 = c4
+      c4 = max(0.0001, rnorm(n = 1, mean = c4, sd = 0.1/sd_decrease))
+      input_rates = array(data = c(c1,c2,c3,c4))
+      input_rates = input_rates/max(input_rates)
+      c1 = input_rates[1]; c2 = input_rates[2]; c3 = input_rates[3]; c4 = input_rates[4]
+      contact_rates_by_age = make_age_contact_rate_array(max_age, scenario, input_ages, input_rates)
+    }
+    
+    # create population 
+    likelihood = doSimsForDistanceCalc(n_sims_per_param_set, dataBins, age_groups, bins,
+                                                N, N_communities, community_probs, initial_worms, contact_rates_by_age,
+                                                worm_stages, female_factor, male_factor,initial_miracidia,
+                                                initial_miracidia_days, predis_aggregation, predis_weight, time_step,
+                                                spec_ages, ages_per_index, death_prob_by_age, ages_for_deaths,
+                                                mda_adherence, mda_access,
+                                                num_time_steps_equ, 
+                                                average_worm_lifespan,
+                                                community_contact_rate,
+                                                max_fecundity, r,
+                                                vaccine_effectiveness,
+                                                density_dependent_fecundity,
+                                                env_cercariae,contact_rate,
+                                                env_cercariae_survival_prop, env_miracidia_survival_prop,
+                                                record_frequency, human_cercariae_prop,
+                                                miracidia_maturity_time, filename)
+    
+    
+    rel_like = likelihood/old_likelihood
+    print(rel_like)
+    if(rel_like > 1 & runif(1) > 0.25){
+      if(par == 1){    
+        predis_aggregation = old_predis
+        likelihood = old_likelihood
+      }else if(par == 2){
+        contact_rate = old_contact_rate
+        likelihood = old_likelihood
+      }else if(par == 3){
+        max_fecundity = old_max_fecundity
+        likelihood = old_likelihood
+      }else if(par == 4){
+        c1 = old_c1
+        likelihood = old_likelihood
+      }else if(par == 5){
+        c2 = old_c2
+        likelihood = old_likelihood
+      }else if(par == 6){
+        c3 = old_c3
+        likelihood = old_likelihood
+      }else if(par == 7){
+        c4 = old_c4
+        likelihood = old_likelihood
+      }
+    }
+    values[count, ] = c(predis_aggregation, contact_rate, max_fecundity, c1, c2, c3, c4, likelihood)
+    write.csv(x= values,file = file_name, row.names = FALSE)
+    if((count%%1) == 0){
+      print(Sys.time() - start_time)
+      print(paste("Done", count, "of", num_rounds))
+      start_time = Sys.time()
+    }
+    
+    count = count + 1
+    
+    #sd_decrease = min(5, ceiling(count/100))
+  }
+  return(values)
+}
+
+
+
+
+
+calculate_distances <- function(simBins, dataBins, age_groups, bins){
+  total_dists = 0
+  for(i in 1:length(age_groups)){
+    x = simBins[which(simBins[, 1] == age_groups[i]), 2:(ncol(simBins)-1)]
+    y = dataBins[which(dataBins[, 1] == age_groups[i]), 2:(ncol(dataBins)-1)]
+    # d = (apply(x, 2, mean)-y)*1/sqrt(apply(x, 2, var))*(apply(x, 2, mean)-y)
+    d = abs(apply(x, 2, mean)-y)
+    total_dists = sum(d) + total_dists
+  }
+  return(total_dists)
+}
+
+
+
+doSimsForDistanceCalc <- function(n_sims_per_param_set, dataBins, age_groups, bins,
+                                  N, N_communities, community_probs, initial_worms, contact_rates_by_age,
+                                  worm_stages, female_factor, male_factor,initial_miracidia,
+                                  initial_miracidia_days, predis_aggregation, predis_weight, time_step,
+                                  spec_ages, ages_per_index, death_prob_by_age, ages_for_deaths,
+                                  mda_adherence, mda_access,
+                                  num_time_steps_equ, 
+                                  average_worm_lifespan,
+                                  community_contact_rate,
+                                  max_fecundity, r,
+                                  vaccine_effectiveness,
+                                  density_dependent_fecundity,
+                                  env_cercariae,contact_rate,
+                                  env_cercariae_survival_prop, env_miracidia_survival_prop,
+                                  record_frequency, human_cercariae_prop,
+                                  miracidia_maturity_time, filename){
+  
+  multiSimsBinCounts = data.frame(matrix(data = 0, 
+                                         nrow = n_sims_per_param_set* length(age_groups), 
+                                         ncol = length(bins)+2))
+  
+  for(i in 1:n_sims_per_param_set){
+    list[ages , death_ages, gender, predisposition, community, human_cercariae, eggs, vac_status,
+         treated, female_worms, male_worms, age_contact_rate,
+         vaccinated, env_miracidia, adherence, access, pop] = 
+      create_population_specific_ages(N, N_communities, community_probs, initial_worms, contact_rates_by_age,
+                                      worm_stages, female_factor, male_factor,initial_miracidia,
+                                      initial_miracidia_days, predis_aggregation, predis_weight, time_step,
+                                      spec_ages, ages_per_index, death_prob_by_age, ages_for_deaths,
+                                      mda_adherence, mda_access)
+    
+    
+    
+    
+    x = update_env_to_equ_no_save(num_time_steps_equ, pop,
+                                  time_step, average_worm_lifespan,
+                                  community_contact_rate,
+                                  max_fecundity, r, worm_stages,
+                                  predis_aggregation,
+                                  vaccine_effectiveness,
+                                  density_dependent_fecundity,
+                                  env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
+                                  female_factor, male_factor, contact_rates_by_age, record_frequency, human_cercariae_prop,
+                                  miracidia_maturity_time, filename)
+    
+    
+    ages = x[[1]]
+    eggs = x[[5]]
+    
+    qq = data.frame(cbind(ages, eggs/100))
+    colnames(qq) = c("Age","Mean_Schisto")
+    simBins = egg_bins_for_age_group(qq, age_groups, bins)
+    sp  = ((i-1)*length(age_groups)+1):((i-1)*length(age_groups)+nrow(simBins))
+    multiSimsBinCounts[sp, ] = simBins
+  }
+  dists = calculate_distances(multiSimsBinCounts, dataBins, age_groups, bins)
+  return(dists)
+}
+
+
+
+
+
+
+
+
+
+
