@@ -8,20 +8,32 @@ Schistox()
 source("Initial_conditions.R")
 contact_rates_by_age = make_age_contact_rate_array(max_age, scenario, input_ages, input_contact_rates)
 
+# contact_ages = array(data = c(as.integer(4),as.integer(9),as.integer(15), as.integer(max_age)))
+# 
+# contact_rates = array(data = c(0.116814817,	9.95E-05,	1,	0.092898019))
+# contact_rates_by_age = make_age_contact_rate_array(max_age, scenario, contact_ages, contact_rates)
 
 
-N = as.integer(2000)
-num_runs = 1 #matt-add description for this?
+# predis_aggregation_grid = seq(0.1, 0.26, 0.04)
+# contact_rate_grid = seq(0.02,0.1, 0.004)
+# max_fecundity_grid = seq(1,5)
+# 1.176000168	0.020440548	0.610324673	0.931397237	1.255440815
+# 
+N = as.integer(1000)
+
 predis_aggregation = 0.24 #for high prev settings 0.24, for low prev settings 0.04 [Toor et al JID paper]
-initial_miracidia = 50000*N/1000
-init_env_cercariae = 50000*N/1000
+contact_rate = 0.1
+max_fecundity = 0.34
+initial_miracidia = 100000*N/1000
+init_env_cercariae = 100000*N/1000
 num_years = 100
-contact_rate = 0.02
 
 
-number_years_equ = 200 #for low prevalence settings, need to be careful and check if longer needed
-num_time_steps_equ = as.integer(365*number_years_equ / time_step)
 time_step = 10
+number_years_equ = 60 #for low prevalence settings, need to be careful and check if longer needed
+num_time_steps_equ = as.integer(365*number_years_equ / time_step)
+
+
 
 list[ages , death_ages, gender, predisposition, community, human_cercariae, eggs, vac_status,
      treated, female_worms, male_worms, age_contact_rate,
@@ -35,6 +47,10 @@ list[ages , death_ages, gender, predisposition, community, human_cercariae, eggs
 
 
 
+
+
+
+
 x = update_env_to_equ(num_time_steps_equ, pop,
                       time_step, average_worm_lifespan,
                       community_contact_rate,
@@ -44,8 +60,7 @@ x = update_env_to_equ(num_time_steps_equ, pop,
                       density_dependent_fecundity,
                       env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                       female_factor, male_factor, contact_rates_by_age, record_frequency, human_cercariae_prop,
-                      miracidia_maturity_time,filename)
-
+                      miracidia_maturity_time, heavy_burden_threshold,filename)
 
 
 ########################################################################################################################
@@ -58,8 +73,25 @@ list[ages_equ, death_ages_equ, gender_equ, predisposition_equ, community_equ,
 
 ### plot data
 # 
-# png("SAC_prev.png", width = 9, height = 6, units = "in", res = 200)
-# plot_data_from_julia(x, filename, col1, col2)
+# png("prevs_high.png", width 0= 9, height = 6, units = "in", res = 300)
+plot_data_from_julia_sac_adult_all(record = x[[13]], filename, col1, col2, col3, ytitle="", xtitle = "")
+# dev.off()
+plot_data_from_julia(record= x[[13]], filename, col1, col2)
+# plot_data_from_julia(x_01, filename, col1, col2)
+# plot_data_from_julia(x_025, filename, col1, col2)
+# plot_data_from_julia(x_05, filename, col1, col2)
+# 
+# png("prevalence_by_agg.png", width = 9, height = 6, units = "in", res = 300)
+# plot_data_from_julia_multiple_records(x_005,x_01, x_015, x_025, x_05, x_05, filename, col1, col2, ytitle="prevalence", xtitle = "year")
+# dev.off()
+# 
+# 
+# a = worm_burden_proportions(femaleWorms = female_worms_equ, maleWorms = male_worms_equ, bins= c(seq(1,100,5),100))
+# png("worm_burden_high.png", width = 9, height = 6, units = "in", res = 200)
+# barplot(a[,2]/sum(a[,2]), names.arg=a[,1], xlab = "worm burden")
+# dev.off()
+# 
+# x_004 = x
 # dev.off()
 # 
 # png("worm_burden_prob.png", width = 9, height = 6, units = "in", res = 200)
@@ -85,7 +117,7 @@ list[ages_equ, death_ages_equ, gender_equ, predisposition_equ, community_equ,
 ################################################################################################################################################
 ################################################################################################################################################
 ###############
-num_repeats = 15 #number of simulations to run
+num_repeats = 10 #number of simulations to run
 number_years = 20
 drug_efficacy = 0.863 #Toor et al. JID paper in SI: drug efficacy 86.3% for S. mansoni and 94% for S. haematobium
 num_time_steps = as.integer(365*number_years / time_step)
@@ -97,7 +129,8 @@ mda_info = create_mda(0, .75, 0, 1,
 vaccine_info =  array(0,dim=c(0,0))
 
 
-list[times, mean_prev, mean_sac_prev, mean_high_burden, mean_high_burden_sac, mean_adult_prev] = 
+
+list[times, mean_prev, mean_sac_prev, mean_high_burden, mean_high_burden_sac, mean_adult_prev, outputs] = 
   run_repeated_sims_no_population_change(num_repeats, num_time_steps,
                                          time_step, average_worm_lifespan,
                                          community_contact_rate, community_probs,
@@ -105,7 +138,7 @@ list[times, mean_prev, mean_sac_prev, mean_high_burden, mean_high_burden_sac, me
                                          density_dependent_fecundity, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                                          female_factor, male_factor, contact_rates_by_age,
                                          death_prob_by_age, ages_for_deaths, birth_rate, mda_info, vaccine_info, mda_adherence, mda_access,
-                                         record_frequency, filename, human_cercariae_prop)
+                                         record_frequency, filename, human_cercariae_prop, miracidia_maturity_time, heavy_burden_threshold)
 
 
 
@@ -149,7 +182,7 @@ list[times1, mean_prev1, mean_sac_prev1, mean_high_burden1, mean_high_burden_sac
                                          density_dependent_fecundity, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                                          female_factor, male_factor, contact_rates_by_age,
                                          death_prob_by_age, ages_for_deaths, birth_rate, mda_info, vaccine_info, mda_adherence, mda_access,
-                                         record_frequency, filename, human_cercariae_prop)
+                                         record_frequency, filename, human_cercariae_prop,miracidia_maturity_time, heavy_burden_threshold)
 
 
 
@@ -199,7 +232,7 @@ list[times5, mean_prev5, mean_sac_prev5, mean_high_burden5, mean_high_burden_sac
                                          density_dependent_fecundity, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                                          female_factor, male_factor, contact_rates_by_age,
                                          death_prob_by_age, ages_for_deaths, birth_rate, mda_info, vaccine_info, mda_adherence, mda_access,
-                                         record_frequency, filename, human_cercariae_prop)
+                                         record_frequency, filename, human_cercariae_prop, miracidia_maturity_time, heavy_burden_threshold)
 
 
 
