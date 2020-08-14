@@ -8,7 +8,7 @@ male_factor = 1
 
 
 # number of eggs which is classified as heavy burden
-heavy_burden_threshold = 70
+heavy_burden_threshold = 16
 #= this is the number of thousands of people in 5 year (0-4, 5-9,...) intervals in Kenya
 #and will be used to give a specified age structure when we run to equilibrium =#
 spec_ages = c(8639, 9082, 6424, 5074, 4425, 3847, 3628, 3062,
