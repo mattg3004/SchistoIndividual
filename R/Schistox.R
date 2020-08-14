@@ -249,7 +249,7 @@ update_env_keep_population_same<- function(num_time_steps, pop, community_contac
                                            env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                                            female_factor, male_factor, contact_rates_by_age,
                                            birth_rate, mda_info, vaccine_info, mda_adherence, mda_access,
-                                           record_frequency, human_cercariae_prop, miracidia_maturity_time){
+                                           record_frequency, human_cercariae_prop, miracidia_maturity_time, heavy_burden_threshold){
   
 
   JuliaCall::julia_assign("num_time_steps", num_time_steps)
@@ -297,6 +297,7 @@ update_env_keep_population_same<- function(num_time_steps, pop, community_contac
   JuliaCall::julia_assign("vaccine_info", vaccine_info)
   JuliaCall::julia_assign("ages_for_deaths", ages_for_deaths)
   JuliaCall::julia_assign("death_prob_by_age", death_prob_by_age)
+  JuliaCall::julia_assign("heavy_burden_threshold", heavy_burden_threshold)
   
   x = JuliaCall::julia_eval("update_env_keep_population_same(num_time_steps, ages, death_ages,community, community_contact_rate, community_probs,
                                            human_cercariae, female_worms, male_worms,
@@ -309,7 +310,7 @@ update_env_keep_population_same<- function(num_time_steps, pop, community_contac
                                            env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                                            female_factor, male_factor, contact_rates_by_age,
                                            birth_rate, mda_info, vaccine_info, adherence, mda_adherence, access, mda_access,
-                                           record_frequency, human_cercariae_prop, miracidia_maturity_time)")
+                                           record_frequency, human_cercariae_prop, miracidia_maturity_time, heavy_burden_threshold)")
   
   
   ages = x[[1]]
@@ -1521,7 +1522,7 @@ calculate_likelihood_grid_parameters <- function(predis_aggregation_grid,
                                       density_dependent_fecundity,
                                       env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                                       female_factor, male_factor, contact_rates_by_age, record_frequency, human_cercariae_prop,
-                                      miracidia_maturity_time, filename)
+                                      miracidia_maturity_time, heavy_burden_threshold, filename)
                 
                  print(Sys.time() - wq)
                 # print(Sys.time() - wq)
@@ -1620,7 +1621,7 @@ mcmc_params <- function(num_rounds,
                                 density_dependent_fecundity,
                                 env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                                 female_factor, male_factor, contact_rates_by_age, record_frequency, human_cercariae_prop,
-                                miracidia_maturity_time, filename)
+                                miracidia_maturity_time, heavy_burden_threshold, filename)
   
   
   ages_equ = x[[1]]
@@ -1691,7 +1692,7 @@ mcmc_params <- function(num_rounds,
                                     density_dependent_fecundity,
                                     env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                                     female_factor, male_factor, contact_rates_by_age, record_frequency, human_cercariae_prop,
-                                    miracidia_maturity_time, filename)
+                                    miracidia_maturity_time, heavy_burden_threshold, filename)
       
       
       ages_equ = x[[1]]
@@ -2058,7 +2059,7 @@ doSimsForDistanceCalc <- function(n_sims_per_param_set, dataBins, age_groups, bi
                                   density_dependent_fecundity,
                                   env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                                   female_factor, male_factor, contact_rates_by_age, record_frequency, human_cercariae_prop,
-                                  miracidia_maturity_time, filename)
+                                  miracidia_maturity_time, heavy_burden_threshold, filename)
     
     
     ages = x[[1]]
