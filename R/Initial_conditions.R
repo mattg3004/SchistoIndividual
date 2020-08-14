@@ -7,30 +7,30 @@ female_factor = 1
 male_factor = 1
 
 
-
-
+# number of eggs which is classified as heavy burden
+heavy_burden_threshold = 70
 #= this is the number of thousands of people in 5 year (0-4, 5-9,...) intervals in Kenya
 #and will be used to give a specified age structure when we run to equilibrium =#
-spec_ages = c(7639, 7082, 6524, 5674, 4725, 4147, 3928, 3362,
-              2636, 1970, 1468, 1166, 943, 718, 455, 244)
+spec_ages = c(8639, 9082, 6424, 5074, 4425, 3847, 3628, 3062,
+              2436, 1770, 1868, 1066, 743, 518, 355, 144)
 
 # specify the number of ages in each bracket in the above specified ages (e.g. 7639 in the 0-4 age bracket and 7082 in the 5-9 age bracket)
 ages_per_index = 5   
 
 # if more than one ommunity, then specify how many here
-N_communities = 3
+#N_communities = 3
 N_communities = 1
 
 # next parameter is the relative probabilities of being in each community
 # if entries are all equal, then all communities are equally likely and will
 # be roughly the same size
-community_probs = c(1,1,1)
+#community_probs = c(1,1,1)
 community_probs = 1
 
 # community contact rates give the contact rate with the infectious
 # cercariae pool for each community
 community_contact_rate = c(1,0.5,0.25)
- community_contact_rate = 1
+community_contact_rate = 1
 
 # parameter for proportion of people who are given mda who will take it
 mda_adherence = .9
@@ -40,11 +40,11 @@ mda_access = .9
 # how long to run simulation for
 number_years = 250
 
-max_fecundity = 0.34  # for S. mansoni [Toor et al JID paper SI]
-#max_fecundity = 0.3  # for S. haematobium [Toor et al JID paper SI]
-
-density_dependent_fecundity = 0.0007 # for S. mansoni [Toor et al JID paper SI]
-#density_dependent_fecundity = 0.0006 # for S. haematobium [Toor et al JID paper SI]
+  max_fecundity = 0.34  # for S. mansoni [Toor et al JID paper SI]
+  #max_fecundity = 0.3  # for S. haematobium [Toor et al JID paper SI]
+  
+  density_dependent_fecundity = 0.0007 # for S. mansoni [Toor et al JID paper SI]
+  #density_dependent_fecundity = 0.0006 # for S. haematobium [Toor et al JID paper SI]
 
 # number of days after which miracidia become cercariae
 miracidia_maturity_time = 24 # for S. mansoni 
@@ -83,7 +83,6 @@ human_cercariae_prop = 1
 # gamma_k = Gamma(0.87,1/0.87)
 
 vaccine_effectiveness = 0.95
-num_sims = 1
 
 # record the state of the population this often in years
 record_frequency = 1/24 # use 1/12 for monthly output
@@ -91,11 +90,11 @@ record_frequency = 1/24 # use 1/12 for monthly output
 
 #= number of deaths per 1000 individuals by age
 #first entry is for under 1's, then for 5 year intervals from then on =#
-age_death_rate_per_1000 = c(6.56, 0.93, 0.3, 0.23, 0.27, 0.38, 0.44, 0.48,0.53, 0.65,
-                            0.88, 1.06, 1.44, 2.1, 3.33, 5.29, 8.51, 13.66,
-                            21.83, 29.98, 36.98)
+# age_death_rate_per_1000 = c(6.56, 0.93, 0.3, 0.23, 0.27, 0.38, 0.44, 0.48,0.53, 0.65,
+#                             0.88, 1.06, 1.44, 2.1, 3.33, 5.29, 8.51, 13.66,
+#                             21.83, 29.98, 36.98)
 
-death_prob_by_age = c(0.0656, 0.0093, 0.003, 0.0023, 0.0027, 0.0038, 0.0044, 0.0048, 0.0053,
+death_prob_by_age = c(0.0656, 0.0003, 0.005, 0.0053, 0.0057, 0.0058, 0.0064, 0.0058, 0.0063,
                      0.0065, 0.0088, 0.0106, 0.0144, 0.021, 0.0333, 0.0529, 0.0851, 0.1366, 0.2183, 0.2998 , 0.3698, 1)
 
 ages_for_deaths = c(1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60,
