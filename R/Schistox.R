@@ -249,7 +249,8 @@ update_env_keep_population_same<- function(num_time_steps, pop, community_contac
                                            env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                                            female_factor, male_factor, contact_rates_by_age,
                                            birth_rate, mda_info, vaccine_info, mda_adherence, mda_access,
-                                           record_frequency, human_cercariae_prop, miracidia_maturity_time, heavy_burden_threshold){
+                                           record_frequency, human_cercariae_prop, miracidia_maturity_time, heavy_burden_threshold,
+                                           kato_katz_par, use_kato_katz){
   
 
   JuliaCall::julia_assign("num_time_steps", num_time_steps)
@@ -298,6 +299,10 @@ update_env_keep_population_same<- function(num_time_steps, pop, community_contac
   JuliaCall::julia_assign("ages_for_deaths", ages_for_deaths)
   JuliaCall::julia_assign("death_prob_by_age", death_prob_by_age)
   JuliaCall::julia_assign("heavy_burden_threshold", heavy_burden_threshold)
+  JuliaCall::julia_assign("kato_katz_par", kato_katz_par)
+  JuliaCall::julia_assign("use_kato_katz", use_kato_katz)
+  
+  
   
   x = JuliaCall::julia_eval("update_env_keep_population_same(num_time_steps, ages, death_ages,community, community_contact_rate, community_probs,
                                            human_cercariae, female_worms, male_worms,
@@ -310,7 +315,8 @@ update_env_keep_population_same<- function(num_time_steps, pop, community_contac
                                            env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                                            female_factor, male_factor, contact_rates_by_age,
                                            birth_rate, mda_info, vaccine_info, adherence, mda_adherence, access, mda_access,
-                                           record_frequency, human_cercariae_prop, miracidia_maturity_time, heavy_burden_threshold)")
+                                           record_frequency, human_cercariae_prop, miracidia_maturity_time, heavy_burden_threshold,
+                            kato_katz_par, use_kato_katz)")
   
   
   ages = x[[1]]
@@ -339,7 +345,7 @@ update_env_keep_population_same<- function(num_time_steps, pop, community_contac
                           death_ages, env_miracidia, env_cercariae, adherence, access)
 
   
-  return(x)
+  return(list(x, record))
 }
 
                                
@@ -435,6 +441,9 @@ update_env_to_equ <- function(num_time_steps, pop,
   JuliaCall::julia_assign("community_contact_rate", community_contact_rate)
   JuliaCall::julia_assign("miracidia_maturity_time", miracidia_maturity_time)
   JuliaCall::julia_assign("heavy_burden_threshold", heavy_burden_threshold)
+  
+  gender= pop[[3]]
+  print(gender)
   
   x = JuliaCall::julia_eval("update_env_to_equilibrium(num_time_steps, ages, human_cercariae, female_worms, male_worms,
   community, community_contact_rate,
@@ -687,7 +696,7 @@ run_repeated_sims_no_population_change <- function(num_repeats, num_time_steps,
                                                    death_prob_by_age, ages_for_deaths, birth_rate, mda_info, 
                                                    vaccine_info, mda_adherence, mda_access,
                                                    record_frequency, filename,human_cercariae_prop, miracidia_maturity_time,
-                                                   heavy_burden_threshold){
+                                                   heavy_burden_threshold, kato_katz_par, use_kato_katz){
   
   JuliaCall::julia_assign("num_repeats", num_repeats)
   JuliaCall::julia_assign("num_time_steps", num_time_steps)
@@ -720,6 +729,8 @@ run_repeated_sims_no_population_change <- function(num_repeats, num_time_steps,
   JuliaCall::julia_assign("community_probs",  community_probs)
   JuliaCall::julia_assign("miracidia_maturity_time",  miracidia_maturity_time)
   JuliaCall::julia_assign("heavy_burden_threshold", heavy_burden_threshold)
+  JuliaCall::julia_assign("kato_katz_par", kato_katz_par)
+  JuliaCall::julia_assign("use_kato_katz", use_kato_katz)
   
   outputs = JuliaCall::julia_eval("run_repeated_sims_no_population_change(num_repeats, num_time_steps,
                                        time_step, average_worm_lifespan,
@@ -729,7 +740,7 @@ run_repeated_sims_no_population_change <- function(num_repeats, num_time_steps,
                                        female_factor, male_factor, contact_rates_by_age,
                                        death_prob_by_age, ages_for_deaths, birth_rate, mda_info, vaccine_info, mda_adherence, mda_access,
                                        record_frequency, filename, human_cercariae_prop, miracidia_maturity_time,
-                                  heavy_burden_threshold)")
+                                  heavy_burden_threshold, kato_katz_par, use_kato_katz)")
   
 
   
@@ -739,6 +750,7 @@ run_repeated_sims_no_population_change <- function(num_repeats, num_time_steps,
   high_burden = outputs[[4]]
   high_burden_sac = outputs[[5]]
   adult_prev = outputs[[6]]
+  high_adult_burden = outputs[[7]]
   
   times_baseline = array(0,dim=c(length(prev),1))
   mean_prev = array(0,dim=c(length(prev),1))
@@ -746,7 +758,7 @@ run_repeated_sims_no_population_change <- function(num_repeats, num_time_steps,
   mean_high_burden = array(0,dim=c(length(prev),1))
   mean_high_burden_sac = array(0,dim=c(length(prev),1))
   mean_adult_prev = array(0,dim=c(length(prev),1))
-  
+  mean_high_adult_burden = array(0,dim=c(length(prev),1))
   for(i in 1:length(prev)){
     times_baseline[i] = times[[i]]
     mean_prev[i] = mean(prev[[i]])
@@ -754,10 +766,10 @@ run_repeated_sims_no_population_change <- function(num_repeats, num_time_steps,
     mean_high_burden[i] = mean(high_burden[[i]])
     mean_high_burden_sac[i] = mean(high_burden_sac[[i]])
     mean_adult_prev[i] = mean(adult_prev[[i]])
-    
+    mean_high_adult_burden[i] = mean(high_adult_burden[[i]])
   }
   
-  return(list(times_baseline, mean_prev, mean_sac_prev, mean_high_burden, mean_high_burden_sac, mean_adult_prev))
+  return(list(times_baseline, mean_prev, mean_sac_prev, mean_high_burden, mean_high_burden_sac, mean_adult_prev, mean_high_adult_burden, outputs))
   
   
 }
@@ -1423,23 +1435,35 @@ calculate_likelihood <- function(simAges, maleWorms, femaleWorms,
     wp = as.data.frame(table(wp))
     wp$wp = as.numeric(as.character(wp$wp))
     wp$Freq = as.numeric(as.character(wp$Freq))
+    l2 = 0
+    l3 = 0
     # iterate over eggs, calculating the probability of producing that number of eggs given number of worms in simulated population.
     for(j in 1:nrow(eggs)){
-      e = eggs$Var1[j]
+      ej = eggs$Var1[j]
+      fj = eggs$Freq[j]
+      l2 = 0
       for(k in 1 : nrow(wp)){
         pairs = wp$wp[k]
         num = wp$Freq[k]
-        log.x[count] = log(dnbinom(e, mu = lambda*pairs*exp(-z*pairs)/100, size = max(0.000001,pairs * r)) * eggs$Freq[j]* num / num_people)
+        l = dnbinom(ej, mu = lambda*pairs*exp(-z*pairs)/100, size = max(0.000001,pairs * r), log = TRUE)
+        p = exp(l + log(num))
+        l2 = l2 + p
+        # log.x[count] =  eggs$Freq[j]* log(dnbinom(e, mu = lambda*pairs*exp(-z*pairs)/100, size = max(0.000001,pairs * r)) * num / num_people)
         #log.x[count] = log(dnbinom(e, mu = lambda*pairs*exp(-z*pairs)/100, size = max(0.000001,pairs * r)) * eggs$Freq[j]) * num / num_people
-        count = count + 1
+        
       }
+      l3 = l3 + fj*(log(l2) - log(num_people))
     }
+    log.x[count] = l3
+    count = count + 1
   }
   log.x = log.x[1:(count-1)]
   M = max(log.x)
   outtrick = M + log(sum(exp(log.x - M)))
   return(list(log.x,outtrick))
 }
+
+
 
 
 
@@ -1583,20 +1607,25 @@ mcmc_params <- function(num_rounds,
   data_2000 = read_excel("data_gurarie_milalani.xlsx", sheet = "Age and egg count Milalani 2000")
   data_2000$Age = data_2000$AGE
   data_2000 = data_2000[,-2]
+  dataBins = egg_bins_for_age_group(data_2000, age_groups, bins)
   N = as.integer(1000)
   # predis_aggregation = 0.25 #for high prev settings 0.24, for low prev settings 0.04 [Toor et al JID paper]
   initial_miracidia = 100000*N/1000
   init_env_cercariae = 100000*N/1000
-  max_fecundity = 2
-  predis_aggregation = 0.26 #for high prev settings 0.24, for low prev settings 0.04 [Toor et al JID paper]
-  contact_rate = 0.024
-  cc = 0.5
-  cc2 = 1.1
+  max_fecundity = 10
+  predis_aggregation = 0.23 #for high prev settings 0.24, for low prev settings 0.04 [Toor et al JID paper]
+  contact_rate = 0.02044
+  c1 = 0.005
+  c2 = 0.3
+  c3 = 2
+  c4 = 0.02
   count = 1
   num_time_steps_equ = as.integer(365*num_years / time_step)
   input_ages = array(data = c(as.integer(4),as.integer(9),as.integer(15), as.integer(max_age)))
+  input_rates = array(data = c(c1,c2,c3,c4))
+  input_rates = input_rates/max(input_rates)
+  c1 = input_rates[1]; c2 = input_rates[2]; c3 = input_rates[3]; c4 = input_rates[4]
   
-  input_rates = array(data = c(0.032,cc,cc2,0.06))
   
   contact_rates_by_age = make_age_contact_rate_array(max_age, scenario, input_ages, input_rates)
   
@@ -1633,43 +1662,60 @@ mcmc_params <- function(num_rounds,
   print(paste("Likelihood =", likelihood))
   values = data.frame(matrix(data = 0, 
                              nrow = num_rounds,
-                             ncol = 6))
-  colnames(values) = c("aggregation", "contactRate", "maxFecundity","c1","c2", "likelihood")
+                             ncol = 8))
+  colnames(values) = c("aggregation", "contactRate", "maxFecundity","c1","c2", "c3","c4", "likelihood")
   sd_decrease = 1
   start_time = Sys.time()
   for(l in 1:num_rounds){
+    start_time = Sys.time()
     # choose a random number, which will decide which parameter we are updating
-    par = sample(1:5,1)
-    
+    par = sample(1:7,1)
+    old_likelihood = likelihood
     # update the parameter and store the previous value and the previous likelihood in new variables
     if(par == 1){
-      old_likelihood = likelihood
       ##### update predis_aggregation
       old_predis = predis_aggregation
-      predis_aggregation = max(rnorm(1, mean = predis_aggregation, sd = 0.1/sd_decrease), 0.001)
+      predis_aggregation = max(rnorm(1, mean = predis_aggregation, sd = 0.41/sd_decrease), 0.001)
     }else if(par == 2){
-      old_likelihood = likelihood
       old_contact_rate = contact_rate
-      contact_rate = max(0.0001, rnorm(1, mean = contact_rate, sd = 0.01/sd_decrease))
+      contact_rate = max(0.0001, rnorm(1, mean = contact_rate, sd = 0.004/sd_decrease))
     }else if(par == 3){
-      old_likelihood = likelihood
       old_max_fecundity = max_fecundity
-      max_fecundity = max(0.1, rnorm(n = 1, mean = max_fecundity, sd = 0.8/sd_decrease))
+      max_fecundity = max(0.1, rnorm(n = 1, mean = max_fecundity, sd = 0.15/sd_decrease))
     }else if(par == 4){
       # if we are updating the age dependent contact rates, then we have to update the contact array too
-      old_likelihood = likelihood
-      old_cc = cc
-      cc = max(0, rnorm(n = 1, mean = cc, sd = 0.1/sd_decrease))
-      input_rates = array(data = c(0.032,cc,cc2,0.06))
-      
+      old_c1 = c1
+      c1 = max(0.0001, rnorm(n = 1, mean = c1, sd = 0.04/sd_decrease))
+      input_rates = array(data = c(c1,c2,c3,c4))
+      input_rates = input_rates/max(input_rates)
+      c1 = input_rates[1]; c2 = input_rates[2]; c3 = input_rates[3]; c4 = input_rates[4]
       contact_rates_by_age = make_age_contact_rate_array(max_age, scenario, input_ages, input_rates)
     }else if(par == 5){
       old_likelihood = likelihood
-      old_cc2 = cc2
-      cc2 = max(0, rnorm(n = 1, mean = cc2, sd = 0.1/sd_decrease))
-      input_rates = array(data = c(0.032,cc,cc2,0.06))
+      old_c2 = c2
+      c2 = max(0.0001, rnorm(n = 1, mean = c2, sd = 0.04/sd_decrease))
+      input_rates = array(data = c(c1,c2,c3,c4))
+      input_rates = input_rates/max(input_rates)
+      c1 = input_rates[1]; c2 = input_rates[2]; c3 = input_rates[3]; c4 = input_rates[4]
+      contact_rates_by_age = make_age_contact_rate_array(max_age, scenario, input_ages, input_rates)
+    }else if(par == 6){
+      old_c3 = c3
+      c3 = max(0.0001, rnorm(n = 1, mean = c3, sd = 0.04/sd_decrease))
+      input_rates = array(data = c(c1,c2,c3,c4))
+      input_rates = input_rates/max(input_rates)
+      c1 = input_rates[1]; c2 = input_rates[2]; c3 = input_rates[3]; c4 = input_rates[4]
+      contact_rates_by_age = make_age_contact_rate_array(max_age, scenario, input_ages, input_rates)
+    }else if(par == 7){
+      
+      old_c4 = c4
+      c4 = max(0.0001, rnorm(n = 1, mean = c4, sd = 0.04/sd_decrease))
+      input_rates = array(data = c(c1,c2,c3,c4))
+      input_rates = input_rates/max(input_rates)
+      c1 = input_rates[1]; c2 = input_rates[2]; c3 = input_rates[3]; c4 = input_rates[4]
       contact_rates_by_age = make_age_contact_rate_array(max_age, scenario, input_ages, input_rates)
     }
+    
+    
       # create population 
       list[ages , death_ages, gender, predisposition, community, human_cercariae, eggs, vac_status,
            treated, female_worms, male_worms, age_contact_rate,
@@ -1718,19 +1764,24 @@ mcmc_params <- function(num_rounds,
           max_fecundity = old_max_fecundity
           likelihood = old_likelihood
         }else if(par == 4){
-          cc = old_cc
+          c1 = old_c1
           likelihood = old_likelihood
         }else if(par == 5){
-          cc2 = old_cc2
+          c2 = old_c2
+          likelihood = old_likelihood
+        }else if(par == 6){
+          c3 = old_c3
+          likelihood = old_likelihood
+        }else if(par == 7){
+          c4 = old_c4
           likelihood = old_likelihood
         }
       }
-      values[count, ] = c(predis_aggregation, contact_rate, max_fecundity, cc, cc2, likelihood)
-      write.csv(x= values,file = file_name)
-      if((count%%50) == 0){
+      values[count, ] = c(predis_aggregation, contact_rate, max_fecundity, c1, c2, c3, c4, likelihood)
+      write.csv(x= values,file = file_name, row.names = FALSE)
+      if((count%%5) == 0){
         print(Sys.time() - start_time)
         print(paste("Done", count, "of", num_rounds))
-        write.csv(x= values,file = file_name)
         start_time = Sys.time()
       }
       
@@ -1842,7 +1893,7 @@ mcmc_with_distance_likelihood <- function(num_rounds,
   data_2000 = read_excel("data_gurarie_milalani.xlsx", sheet = "Age and egg count Milalani 2000")
   data_2000$Age = data_2000$AGE
   data_2000 = data_2000[,-2]
-  dataBins = egg_bins_for_age_group(data_2000, age_groups,bins)
+  dataBins = egg_bins_for_age_group(data_2000, age_groups, bins)
   N = as.integer(1000)
   # predis_aggregation = 0.25 #for high prev settings 0.24, for low prev settings 0.04 [Toor et al JID paper]
   initial_miracidia = 100000*N/1000
@@ -1898,17 +1949,17 @@ mcmc_with_distance_likelihood <- function(num_rounds,
     if(par == 1){
       ##### update predis_aggregation
       old_predis = predis_aggregation
-      predis_aggregation = max(rnorm(1, mean = predis_aggregation, sd = 0.1/sd_decrease), 0.001)
+      predis_aggregation = max(rnorm(1, mean = predis_aggregation, sd = 0.41/sd_decrease), 0.001)
     }else if(par == 2){
       old_contact_rate = contact_rate
-      contact_rate = max(0.0001, rnorm(1, mean = contact_rate, sd = 0.01/sd_decrease))
+      contact_rate = max(0.0001, rnorm(1, mean = contact_rate, sd = 0.004/sd_decrease))
     }else if(par == 3){
       old_max_fecundity = max_fecundity
-      max_fecundity = max(0.1, rnorm(n = 1, mean = max_fecundity, sd = 0.8/sd_decrease))
+      max_fecundity = max(0.1, rnorm(n = 1, mean = max_fecundity, sd = 0.15/sd_decrease))
     }else if(par == 4){
       # if we are updating the age dependent contact rates, then we have to update the contact array too
       old_c1 = c1
-      c1 = max(0.0001, rnorm(n = 1, mean = c1, sd = 0.1/sd_decrease))
+      c1 = max(0.0001, rnorm(n = 1, mean = c1, sd = 0.04/sd_decrease))
       input_rates = array(data = c(c1,c2,c3,c4))
       input_rates = input_rates/max(input_rates)
       c1 = input_rates[1]; c2 = input_rates[2]; c3 = input_rates[3]; c4 = input_rates[4]
@@ -1916,14 +1967,14 @@ mcmc_with_distance_likelihood <- function(num_rounds,
     }else if(par == 5){
       old_likelihood = likelihood
       old_c2 = c2
-      c2 = max(0.0001, rnorm(n = 1, mean = c2, sd = 0.1/sd_decrease))
+      c2 = max(0.0001, rnorm(n = 1, mean = c2, sd = 0.04/sd_decrease))
       input_rates = array(data = c(c1,c2,c3,c4))
       input_rates = input_rates/max(input_rates)
       c1 = input_rates[1]; c2 = input_rates[2]; c3 = input_rates[3]; c4 = input_rates[4]
       contact_rates_by_age = make_age_contact_rate_array(max_age, scenario, input_ages, input_rates)
     }else if(par == 6){
       old_c3 = c3
-      c3 = max(0.0001, rnorm(n = 1, mean = c3, sd = 0.1/sd_decrease))
+      c3 = max(0.0001, rnorm(n = 1, mean = c3, sd = 0.04/sd_decrease))
       input_rates = array(data = c(c1,c2,c3,c4))
       input_rates = input_rates/max(input_rates)
       c1 = input_rates[1]; c2 = input_rates[2]; c3 = input_rates[3]; c4 = input_rates[4]
@@ -1931,7 +1982,7 @@ mcmc_with_distance_likelihood <- function(num_rounds,
     }else if(par == 7){
       
       old_c4 = c4
-      c4 = max(0.0001, rnorm(n = 1, mean = c4, sd = 0.1/sd_decrease))
+      c4 = max(0.0001, rnorm(n = 1, mean = c4, sd = 0.04/sd_decrease))
       input_rates = array(data = c(c1,c2,c3,c4))
       input_rates = input_rates/max(input_rates)
       c1 = input_rates[1]; c2 = input_rates[2]; c3 = input_rates[3]; c4 = input_rates[4]
@@ -1959,7 +2010,7 @@ mcmc_with_distance_likelihood <- function(num_rounds,
     
     rel_like = likelihood/old_likelihood
     print(rel_like)
-    if(rel_like > 1 & runif(1) > 0.25){
+    if((rel_like > 1) & (runif(1) > 0.25)){
       if(par == 1){    
         predis_aggregation = old_predis
         likelihood = old_likelihood
