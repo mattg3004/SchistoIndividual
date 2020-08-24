@@ -8,7 +8,7 @@ male_factor = 1
 
 
 # number of eggs which is classified as heavy burden
-heavy_burden_threshold = 16
+heavy_burden_threshold = 70
 #= this is the number of thousands of people in 5 year (0-4, 5-9,...) intervals in Kenya
 #and will be used to give a specified age structure when we run to equilibrium =#
 spec_ages = c(8639, 9082, 6424, 5074, 4425, 3847, 3628, 3062,
@@ -52,7 +52,7 @@ miracidia_maturity_time = 24 # for S. mansoni
 
 
 initial_miracidia = 5000
-initial_miracidia_days = round(41/time_step)
+initial_miracidia_days = round(miracidia_maturity_time/time_step)
 env_cercariae = 5000
 init_env_cercaraie = env_cercariae
 
@@ -79,7 +79,8 @@ mda_round = 0
 human_cercariae_prop = 1
 
 # gamma distribution for Kato-Katz method
-
+kato_katz_par = 0.87
+use_kato_katz = 0
 # gamma_k = Gamma(0.87,1/0.87)
 
 vaccine_effectiveness = 0.95
