@@ -62,20 +62,20 @@ list[x, record] = update_env_keep_population_same(num_time_steps, pop, community
                                     female_factor, male_factor, contact_rates_by_age,
                                     birth_rate, mda_info, vaccine_info, mda_adherence, mda_access,
                                     record_frequency, human_cercariae_prop, miracidia_maturity_time, heavy_burden_threshold,
-                                    kato_katz_par, use_kato_katz)
+                                    kato_katz_par, use_kato_katz, filename)
 
 
 # 
-# x = update_env_to_equ(num_time_steps_equ, pop,
+# list[x,record] = update_env_to_equ(num_time_steps, ages, human_cercariae, female_worms, male_worms,
+#                       community, community_contact_rate,
 #                       time_step, average_worm_lifespan,
-#                       community_contact_rate,
-#                       max_fecundity, r, worm_stages,
-#                       predis_aggregation,
-#                       vaccine_effectiveness,
-#                       density_dependent_fecundity,
+#                       eggs, max_fecundity, r, worm_stages,
+#                       vac_status, gender, predis_aggregation,
+#                       predisposition, treated, vaccine_effectiveness,
+#                       density_dependent_fecundity,vaccinated, env_miracidia,
 #                       env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
-#                       female_factor, male_factor, contact_rates_by_age, record_frequency, human_cercariae_prop,
-#                       miracidia_maturity_time, heavy_burden_threshold,filename)
+#                       female_factor, male_factor, contact_rates_by_age, record_frequency, age_contact_rate,human_cercariae_prop,
+#                       miracidia_maturity_time, heavy_burden_threshold, kato_katz_par, use_kato_katz, filename)
 
 
 ########################################################################################################################
@@ -85,12 +85,12 @@ list[ages_equ, death_ages_equ, gender_equ, predisposition_equ, community_equ,
      eggs_equ, vac_status_equ, treated_equ,female_worms_equ, male_worms_equ,
      vaccinated_equ, age_contact_rate_equ, env_miracidia_equ ,
      env_cercariae_equ, adherence_equ, access_equ] = load_population_from_file(filename, N)
-
-list[log.x,outtrick] = calculate_likelihood(ages_equ, male_worms_equ, female_worms_equ, 
-                                            max_fecundity, 0.0007, data_2000)
-
-outtrick
-### plot data
+# 
+# list[log.x,outtrick] = calculate_likelihood(ages_equ, male_worms_equ, female_worms_equ, 
+#                                             max_fecundity, 0.0007, data_2000)
+# 
+# outtrick
+# ### plot data
 # 
 # png("prevs_high.png", width 0= 9, height = 6, units = "in", res = 300)
 plot_data_from_julia_sac_adult_all(record , filename, col1, col2, col3, ytitle="", xtitle = "")
