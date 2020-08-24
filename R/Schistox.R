@@ -250,7 +250,7 @@ update_env_keep_population_same<- function(num_time_steps, pop, community_contac
                                            female_factor, male_factor, contact_rates_by_age,
                                            birth_rate, mda_info, vaccine_info, mda_adherence, mda_access,
                                            record_frequency, human_cercariae_prop, miracidia_maturity_time, heavy_burden_threshold,
-                                           kato_katz_par, use_kato_katz){
+                                           kato_katz_par, use_kato_katz, filename){
   
 
   JuliaCall::julia_assign("num_time_steps", num_time_steps)
@@ -391,16 +391,16 @@ update_env_keep_population_same<- function(num_time_steps, pop, community_contac
 #' @export
 #'
 #' @examples
-update_env_to_equ <- function(num_time_steps, pop,
+update_env_to_equ <- function(num_time_steps, ages, human_cercariae, female_worms, male_worms,
+                              community, community_contact_rate,
                               time_step, average_worm_lifespan,
-                              community_contact_rate,
-                              max_fecundity, r, worm_stages,
-                              predis_aggregation,
-                              vaccine_effectiveness,
-                              density_dependent_fecundity,
+                              eggs, max_fecundity, r, worm_stages,
+                              vac_status, gender, predis_aggregation,
+                              predisposition, treated, vaccine_effectiveness,
+                              density_dependent_fecundity,vaccinated, env_miracidia,
                               env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
-                              female_factor, male_factor, contact_rates_by_age, record_frequency,
-                              human_cercariae_prop,miracidia_maturity_time, heavy_burden_threshold,
+                              female_factor, male_factor, contact_rates_by_age, record_frequency, age_contact_rate,human_cercariae_prop,
+                              miracidia_maturity_time, heavy_burden_threshold, kato_katz_par, use_kato_katz,
                               filename){
   
   JuliaCall::julia_assign("num_time_steps", num_time_steps)
@@ -441,9 +441,10 @@ update_env_to_equ <- function(num_time_steps, pop,
   JuliaCall::julia_assign("community_contact_rate", community_contact_rate)
   JuliaCall::julia_assign("miracidia_maturity_time", miracidia_maturity_time)
   JuliaCall::julia_assign("heavy_burden_threshold", heavy_burden_threshold)
+  JuliaCall::julia_assign("kato_katz_par", kato_katz_par)
+  JuliaCall::julia_assign("use_kato_katz", use_kato_katz)
   
-  gender= pop[[3]]
-  print(gender)
+
   
   x = JuliaCall::julia_eval("update_env_to_equilibrium(num_time_steps, ages, human_cercariae, female_worms, male_worms,
   community, community_contact_rate,
@@ -454,7 +455,7 @@ update_env_to_equ <- function(num_time_steps, pop,
                                 density_dependent_fecundity,vaccinated, env_miracidia,
                                 env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
                                 female_factor, male_factor, contact_rates_by_age, record_frequency, age_contact_rate, 
-                            human_cercariae_prop, miracidia_maturity_time, heavy_burden_threshold)")
+                            human_cercariae_prop, miracidia_maturity_time, heavy_burden_threshold, kato_katz_par, use_kato_katz)")
   
 
   
@@ -471,6 +472,7 @@ update_env_to_equ <- function(num_time_steps, pop,
   vaccinated = x[[10]]
   env_miracidia = x[[11]]
   env_cercariae = x[[12]]
+  record = x[[13]]
   access = pop[[16]]
   adherence = pop[[15]]
   community = pop[[5]]
@@ -484,7 +486,7 @@ update_env_to_equ <- function(num_time_steps, pop,
                           death_ages, env_miracidia, env_cercariae, adherence, access)
   
   
-  return(x)
+  return(list(x, record))
 }
 
 
