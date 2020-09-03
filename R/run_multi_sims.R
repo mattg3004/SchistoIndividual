@@ -25,9 +25,6 @@ return_sim_values <- function(record){
 
 
 
-
-
-
 source("Initial_conditions.R")
 contact_rates_by_age = make_age_contact_rate_array(max_age, scenario, input_ages, input_contact_rates)
 
@@ -46,7 +43,7 @@ init_env_cercariae = 100000*N/1000
 time_step = 10
 number_years_equ = 60 #for low prevalence settings, need to be careful and check if longer needed
 num_time_steps_equ = as.integer(365*number_years_equ / time_step)
-number_sims = 10
+number_runs_to_equ = 10
 
 number_years_mda = 20
 drug_efficacy = 0.863 #Toor et al. JID paper in SI: drug efficacy 86.3% for S. mansoni and 94% for S. haematobium
@@ -54,7 +51,7 @@ num_time_steps_mda = as.integer(365*number_years_mda / time_step)
 num_repeats = 10 #number of simulations to run
 
 
-for(i in 1:number_sims){
+for(i in 1:number_runs_to_equ){
   
   list[ages , death_ages, gender, predisposition, community, human_cercariae, eggs, vac_status,
        treated, female_worms, male_worms, age_contact_rate,
@@ -89,13 +86,13 @@ for(i in 1:number_sims){
     return_sim_values(record)
   
   if(i == 1){
-    all_times = data.frame(matrix(data = 0, nrow = length(times), ncol = number_sims))
-    all_prev= data.frame(matrix(data = 0, nrow = length(times), ncol = number_sims))
-    all_sac_prev = data.frame(matrix(data = 0, nrow = length(times), ncol = number_sims))
-    all_high_burden = data.frame(matrix(data = 0, nrow = length(times), ncol = number_sims))
-    all_high_burden_sac = data.frame(matrix(data = 0, nrow = length(times), ncol = number_sims))
-    all_adult_prev = data.frame(matrix(data = 0, nrow = length(times), ncol = number_sims))
-    all_high_adult_burden = data.frame(matrix(data = 0, nrow = length(times), ncol = number_sims))
+    all_times = data.frame(matrix(data = 0, nrow = length(times), ncol = number_runs_to_equ))
+    all_prev= data.frame(matrix(data = 0, nrow = length(times), ncol = number_runs_to_equ))
+    all_sac_prev = data.frame(matrix(data = 0, nrow = length(times), ncol = number_runs_to_equ))
+    all_high_burden = data.frame(matrix(data = 0, nrow = length(times), ncol = number_runs_to_equ))
+    all_high_burden_sac = data.frame(matrix(data = 0, nrow = length(times), ncol = number_runs_to_equ))
+    all_adult_prev = data.frame(matrix(data = 0, nrow = length(times), ncol = number_runs_to_equ))
+    all_high_adult_burden = data.frame(matrix(data = 0, nrow = length(times), ncol = number_runs_to_equ))
   }
   
   
@@ -141,13 +138,13 @@ for(i in 1:number_sims){
   
   
   if(i == 1){
-    all_mda_times = data.frame(matrix(data = 0, nrow = length(times), ncol = number_sims*num_repeats))
-    all_mda_prev= data.frame(matrix(data = 0, nrow = length(times), ncol = number_sims*num_repeats))
-    all_mda_sac_prev = data.frame(matrix(data = 0, nrow = length(times), ncol = number_sims*num_repeats))
-    all_mda_high_burden = data.frame(matrix(data = 0, nrow = length(times), ncol = number_sims*num_repeats))
-    all_mda_high_burden_sac = data.frame(matrix(data = 0, nrow = length(times), ncol = number_sims*num_repeats))
-    all_mda_adult_prev = data.frame(matrix(data = 0, nrow = length(times), ncol = number_sims*num_repeats))
-    all_mda_high_adult_burden = data.frame(matrix(data = 0, nrow = length(times), ncol = number_sims*num_repeats))
+    all_mda_times = data.frame(matrix(data = 0, nrow = length(times), ncol = number_runs_to_equ*num_repeats))
+    all_mda_prev= data.frame(matrix(data = 0, nrow = length(times), ncol = number_runs_to_equ*num_repeats))
+    all_mda_sac_prev = data.frame(matrix(data = 0, nrow = length(times), ncol = number_runs_to_equ*num_repeats))
+    all_mda_high_burden = data.frame(matrix(data = 0, nrow = length(times), ncol = number_runs_to_equ*num_repeats))
+    all_mda_high_burden_sac = data.frame(matrix(data = 0, nrow = length(times), ncol = number_runs_to_equ*num_repeats))
+    all_mda_adult_prev = data.frame(matrix(data = 0, nrow = length(times), ncol = number_runs_to_equ*num_repeats))
+    all_mda_high_adult_burden = data.frame(matrix(data = 0, nrow = length(times), ncol = number_runs_to_equ*num_repeats))
   }
   
   for(j in 1: length(times)){
