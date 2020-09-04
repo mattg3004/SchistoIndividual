@@ -33,8 +33,8 @@ N = as.integer(1000)
 
 
 predis_aggregation = 0.24 #for high prev settings 0.24, for low prev settings 0.04 [Toor et al JID paper]
-contact_rate = 0.02615226
-max_fecundity = 1.1150558
+contact_rate = 0.0415226
+max_fecundity = 0.34
 initial_miracidia = 100000*N/1000
 init_env_cercariae = 100000*N/1000
 
@@ -68,19 +68,30 @@ for(i in 1:number_runs_to_equ){
   vaccine_info = array(0,dim=c(0,0))
   
   # 
-  
-  list[x, record] = update_env_keep_population_same(num_time_steps_equ, pop, community_contact_rate, community_probs,
-                                                    time_step, average_worm_lifespan,
-                                                    max_fecundity, r, worm_stages,
-                                                    predis_aggregation,predis_weight,
-                                                    vaccine_effectiveness,
-                                                    density_dependent_fecundity, death_prob_by_age, ages_for_deaths,
-                                                    env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
-                                                    female_factor, male_factor, contact_rates_by_age,
-                                                    birth_rate, mda_info, vaccine_info, mda_adherence, mda_access,
-                                                    record_frequency, human_cercariae_prop, miracidia_maturity_time, heavy_burden_threshold,
-                                                    kato_katz_par, use_kato_katz, filename)
-  
+  # no births death
+  list[x,record] = update_env_to_equ(num_time_steps, ages, human_cercariae, female_worms, male_worms,
+                                     community, community_contact_rate,
+                                     time_step, average_worm_lifespan,
+                                     eggs, max_fecundity, r, worm_stages,
+                                     vac_status, gender, predis_aggregation,
+                                     predisposition, treated, vaccine_effectiveness,
+                                     density_dependent_fecundity,vaccinated, env_miracidia,
+                                     env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
+                                     female_factor, male_factor, contact_rates_by_age, record_frequency, age_contact_rate,human_cercariae_prop,
+                                     miracidia_maturity_time, heavy_burden_threshold, kato_katz_par, use_kato_katz, filename)
+  # # with  births and deaths
+  # list[x, record] = update_env_keep_population_same(num_time_steps_equ, pop, community_contact_rate, community_probs,
+  #                                                   time_step, average_worm_lifespan,
+  #                                                   max_fecundity, r, worm_stages,
+  #                                                   predis_aggregation,predis_weight,
+  #                                                   vaccine_effectiveness,
+  #                                                   density_dependent_fecundity, death_prob_by_age, ages_for_deaths,
+  #                                                   env_cercariae, contact_rate, env_cercariae_survival_prop, env_miracidia_survival_prop,
+  #                                                   female_factor, male_factor, contact_rates_by_age,
+  #                                                   birth_rate, mda_info, vaccine_info, mda_adherence, mda_access,
+  #                                                   record_frequency, human_cercariae_prop, miracidia_maturity_time, heavy_burden_threshold,
+  #                                                   kato_katz_par, use_kato_katz, filename)
+  # 
   
   list[times, prev, sac_prev, high_burden, high_burden_sac, adult_prev, high_adult_burden] = 
     return_sim_values(record)
@@ -112,21 +123,38 @@ for(i in 1:number_runs_to_equ){
   
   vaccine_info =  array(0,dim=c(0,0))
   
-  
-  
+  # no births death
   list[times, mean_prev, mean_sac_prev, mean_high_burden, mean_high_burden_sac, mean_adult_prev, mean_high_adult_burden, outputs] =
-    run_repeated_sims_no_population_change(num_repeats, num_time_steps_mda,
-                                           time_step, average_worm_lifespan,
-                                           community_contact_rate, community_probs,
-                                           max_fecundity, r, worm_stages, predis_aggregation,
-                                           predis_weight, vaccine_effectiveness,
-                                           density_dependent_fecundity, contact_rate,
-                                           env_cercariae_survival_prop, env_miracidia_survival_prop,
-                                           female_factor, male_factor, contact_rates_by_age,
-                                           death_prob_by_age, ages_for_deaths, birth_rate, mda_info,
-                                           vaccine_info, mda_adherence, mda_access,
-                                           record_frequency, filename,human_cercariae_prop, miracidia_maturity_time,
-                                           heavy_burden_threshold, kato_katz_par, use_kato_katz)
+    run_repeated_sims_no_births_deaths(num_repeats, num_time_steps_mda,
+                                       time_step, average_worm_lifespan,
+                                       community_contact_rate, community_probs,
+                                       max_fecundity, r, worm_stages, predis_aggregation,
+                                       predis_weight, vaccine_effectiveness,
+                                       density_dependent_fecundity, contact_rate,
+                                       env_cercariae_survival_prop, env_miracidia_survival_prop,
+                                       female_factor, male_factor, contact_rates_by_age,
+                                       death_prob_by_age, ages_for_deaths, birth_rate, mda_info,
+                                       vaccine_info, mda_adherence, mda_access,
+                                       record_frequency, filename,human_cercariae_prop, miracidia_maturity_time,
+                                       heavy_burden_threshold, kato_katz_par, use_kato_katz)
+  
+  # # with  births and deaths
+  # list[times, mean_prev, mean_sac_prev, mean_high_burden, mean_high_burden_sac, mean_adult_prev, mean_high_adult_burden, outputs] =
+  #   run_repeated_sims_no_population_change(num_repeats, num_time_steps_mda,
+  #                                          time_step, average_worm_lifespan,
+  #                                          community_contact_rate, community_probs,
+  #                                          max_fecundity, r, worm_stages, predis_aggregation,
+  #                                          predis_weight, vaccine_effectiveness,
+  #                                          density_dependent_fecundity, contact_rate,
+  #                                          env_cercariae_survival_prop, env_miracidia_survival_prop,
+  #                                          female_factor, male_factor, contact_rates_by_age,
+  #                                          death_prob_by_age, ages_for_deaths, birth_rate, mda_info,
+  #                                          vaccine_info, mda_adherence, mda_access,
+  #                                          record_frequency, filename,human_cercariae_prop, miracidia_maturity_time,
+  #                                          heavy_burden_threshold, kato_katz_par, use_kato_katz)
+  
+  
+  
   
   times = outputs[[1]]
   prev = outputs[[2]]
