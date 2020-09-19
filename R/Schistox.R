@@ -133,7 +133,7 @@ create_population_specific_ages <- function(N, N_communities, community_probs, i
   
   
   num_steps = 20000
-  list[ages, death_ages] = generate_ages_and_deaths(num_steps, ages, death_ages, death_prob_by_age, ages_for_deaths)
+  list[ages, death_ages] = generate_ages_and_deaths(num_steps, ages, death_ages, death_prob_by_age, ages_for_deaths, time_step)
   age_contact_rate = update_contact_rate(ages, age_contact_rate, contact_rates_by_age)
   gender = result[[3]]
   result[[1]] = ages
