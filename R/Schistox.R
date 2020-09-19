@@ -204,14 +204,15 @@ make_age_contact_rate_array <- function(max_age, scenario, input_ages, input_con
 #' @export
 #'
 #' @examples
-generate_ages_and_deaths <- function(num_steps, ages, death_ages, death_prob_by_age, ages_for_deaths){
+generate_ages_and_deaths <- function(num_steps, ages, death_ages, death_prob_by_age, ages_for_deaths, time_step){
   JuliaCall::julia_assign("num_steps", num_steps)
   JuliaCall::julia_assign("ages", ages)
   JuliaCall::julia_assign("death_ages", death_ages)
   JuliaCall::julia_assign("death_prob_by_age", death_prob_by_age)
   JuliaCall::julia_assign("ages_for_deaths", ages_for_deaths)
+    JuliaCall::julia_assign("time_step", time_step)
   
-  result <- JuliaCall::julia_eval("generate_ages_and_deaths(num_steps, ages, death_ages, death_prob_by_age, ages_for_deaths)")
+  result <- JuliaCall::julia_eval("generate_ages_and_deaths(num_steps, ages, death_ages, death_prob_by_age, ages_for_deaths, time_step)")
   ages = result[[1]]
   death_ages = result[[2]]
   return(list(ages, death_ages))
